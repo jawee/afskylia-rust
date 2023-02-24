@@ -1,6 +1,6 @@
-use crate::commands::run;
+use rugo::commands::run;
 
 fn main() {
     println!("Hello, world!");
-    run::run();
+    run();
 }
