@@ -1,6 +1,6 @@
 use std::env;
 
-use rugo::commands::run;
+use rhugo::commands::run;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
