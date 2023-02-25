@@ -1,3 +1,3 @@
-mod merge_content;
+mod merge_page;
 
-pub use merge_content::merge_content;
+pub use merge_page::MergePage;
