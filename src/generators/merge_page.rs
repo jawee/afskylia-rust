@@ -21,8 +21,7 @@ mod tests {
     use super::MergePage;
 
     #[test]
-    fn parse_returns_expected_page()
-    {
+    fn parse_returns_expected_page() {
         let layout = r#"
             <html>
            <head><title>Hello</title>
@@ -47,8 +46,7 @@ mod tests {
     }
 
     #[test]
-    fn parse_layout_merged_with_content_ok()
-    {
+    fn parse_layout_merged_with_content_ok() {
         let layout = r#"
             <html>
             <head><title>Hello</title>
