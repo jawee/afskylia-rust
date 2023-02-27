@@ -16,21 +16,19 @@ impl Token {
 }
 
 
-#[derive(Clone, Copy)]
+#[derive(PartialEq,Clone, Copy)]
 pub enum TokenType {
     Unknown,
-    Heading1,
-    Heading2,
-    Paragraph,
+    Heading,
+    Letter,
 }
 
 impl fmt::Debug for TokenType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             TokenType::Unknown => write!(f, "TokenType::Unknown"),
-            TokenType::Heading1 => write!(f, "TokenType::Heading1"),
-            TokenType::Heading2 => write!(f, "TokenType::Heading2"),
-            TokenType::Paragraph => write!(f, "TokenType::Paragraph"),
+            TokenType::Heading => write!(f, "TokenType::Heading"),
+            TokenType::Letter => write!(f, "TokenType::Letter"),
         }
     }
 }
@@ -39,9 +37,8 @@ impl fmt::Display for TokenType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             TokenType::Unknown => write!(f, "TokenType::Unknown"),
-            TokenType::Heading1 => write!(f, "TokenType::Heading1"),
-            TokenType::Heading2 => write!(f, "TokenType::Heading2"),
-            TokenType::Paragraph => write!(f, "TokenType::Paragraph"),
+            TokenType::Heading => write!(f, "TokenType::Heading"),
+            TokenType::Letter => write!(f, "TokenType::Letter"),
         }
     }
 }
@@ -56,9 +53,9 @@ mod tests {
     use super::{Token, TokenType};
 
     #[test]
-    fn test_create_token_heading1() {
-        let token = Token::new(TokenType::Heading1, "".to_string());
-        assert_matches!(token.token_type, TokenType::Heading1);
+    fn test_create_token_heading() {
+        let token = Token::new(TokenType::Heading, "".to_string());
+        assert_matches!(token.token_type, TokenType::Heading);
     }
 
     #[test]

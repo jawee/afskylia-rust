@@ -16,6 +16,7 @@ impl Lexer {
 
         return Ok(Self::new_lexer_from_input(input));
     }
+
     fn new_lexer_from_input(input: &str) -> Lexer {
         let lexer = Lexer {
             input: input.to_string(),
@@ -30,8 +31,8 @@ impl Lexer {
 
     pub fn next_token(&mut self) -> Token {
         let tok = match self.ch {
-            '#' => Token::new(TokenType::Heading1, "".to_string()),
-            _ => Token::new(TokenType::Unknown, "".to_string()),
+            '#' => Token::new(TokenType::Heading, "".to_string()),
+            _ => Token::new(TokenType::Letter, "".to_string()),
         };
 
         self.read_char();
@@ -61,17 +62,43 @@ mod tests {
     use claim::{assert_ok, assert_err, assert_matches};
 
     #[test]
-    fn test_next_token() {
+    fn test_next_token_heading_with_text() {
+        let input = "# He";
+        let mut expected = vec![TokenType::Heading, TokenType::Letter, TokenType::Letter];
+        let mut lexer = Lexer::new(&input).unwrap();
+
+        let mut actual = Vec::new(); 
+
+        for _ in 0..3 {
+            let tok = lexer.next_token();
+            actual.push(tok.token_type);
+        }
+
+        for _ in 0..expected.len() {
+            let atok = actual.pop().unwrap();
+            let etok = expected.pop().unwrap();
+            assert_eq!(atok, etok);
+        }
+    }
+
+    #[test]
+    fn test_next_token_heading_twice() {
+        let input = "##";
+
+        let mut lexer = Lexer::new(&input).unwrap();
+        let mut tok = lexer.next_token();
+        assert_matches!(tok.token_type, TokenType::Heading);
+        tok = lexer.next_token();
+        assert_matches!(tok.token_type, TokenType::Heading);
+    }
+    #[test]
+    fn test_next_token_heading() {
         let input = "#";
 
         let mut lexer = Lexer::new(&input).unwrap();
-
         let tok = lexer.next_token();
-        // match tok.token_type {
-        //     TokenType::Heading1 => {},
-        //     _ => assert_
-        println!("tokentype = {}", tok.token_type);
-        assert_matches!(tok.token_type, TokenType::Heading1);
+
+        assert_matches!(tok.token_type, TokenType::Heading);
     }
 
     #[test]
