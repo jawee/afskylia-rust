@@ -16,7 +16,7 @@ impl Token {
 }
 
 
-#[derive(PartialEq,Clone, Copy)]
+#[derive(PartialEq, Clone, Copy)]
 pub enum TokenType {
     Unknown,
     Heading,
@@ -46,8 +46,6 @@ impl fmt::Display for TokenType {
 
 #[cfg(test)]
 mod tests {
-    // use claim::{assert_ok, assert_err};
-
     use claim::assert_matches;
 
     use super::{Token, TokenType};
