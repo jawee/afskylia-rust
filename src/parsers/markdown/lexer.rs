@@ -31,8 +31,8 @@ impl Lexer {
 
     pub fn next_token(&mut self) -> Token {
         let tok = match self.ch {
-            '#' => Token::new(TokenType::Heading, "".to_string()),
-            _ => Token::new(TokenType::Letter, "".to_string()),
+            '#' => Token::new(TokenType::Heading, String::from("")),
+            _ => Token::new(TokenType::Letter, String::from(self.ch)),
         };
 
         self.read_char();
@@ -64,12 +64,12 @@ mod tests {
     #[test]
     fn test_next_token_heading_with_text() {
         let input = "# He";
-        let mut expected = vec![TokenType::Heading, TokenType::Letter, TokenType::Letter];
+        let mut expected = vec![TokenType::Heading, TokenType::Letter, TokenType::Letter, TokenType::Letter];
         let mut lexer = Lexer::new(&input).unwrap();
 
         let mut actual = Vec::new(); 
 
-        for _ in 0..3 {
+        for _ in 0..4 {
             let tok = lexer.next_token();
             actual.push(tok.token_type);
         }
@@ -91,6 +91,29 @@ mod tests {
         tok = lexer.next_token();
         assert_matches!(tok.token_type, TokenType::Heading);
     }
+
+    #[test]
+    fn test_next_token_letter_space() {
+        let input = " ";
+
+        let mut lexer = Lexer::new(&input).unwrap();
+        let tok = lexer.next_token();
+
+        assert_matches!(tok.token_type, TokenType::Letter);
+        assert_eq!(tok.literal, String::from(" "));
+    }
+
+    #[test]
+    fn test_next_token_letter_a() {
+        let input = "a";
+
+        let mut lexer = Lexer::new(&input).unwrap();
+        let tok = lexer.next_token();
+
+        assert_matches!(tok.token_type, TokenType::Letter);
+        assert_eq!(tok.literal, String::from("a"));
+    }
+
     #[test]
     fn test_next_token_heading() {
         let input = "#";

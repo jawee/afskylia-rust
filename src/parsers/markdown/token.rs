@@ -21,6 +21,7 @@ pub enum TokenType {
     Unknown,
     Heading,
     Letter,
+    LineBreak,
 }
 
 impl fmt::Debug for TokenType {
@@ -29,6 +30,7 @@ impl fmt::Debug for TokenType {
             TokenType::Unknown => write!(f, "TokenType::Unknown"),
             TokenType::Heading => write!(f, "TokenType::Heading"),
             TokenType::Letter => write!(f, "TokenType::Letter"),
+            TokenType::LineBreak => write!(f, "TokenType::LineBreak"),
         }
     }
 }
@@ -39,6 +41,7 @@ impl fmt::Display for TokenType {
             TokenType::Unknown => write!(f, "TokenType::Unknown"),
             TokenType::Heading => write!(f, "TokenType::Heading"),
             TokenType::Letter => write!(f, "TokenType::Letter"),
+            TokenType::LineBreak => write!(f, "TokenType::LineBreak"),
         }
     }
 }
@@ -51,7 +54,15 @@ mod tests {
     use super::{Token, TokenType};
 
     #[test]
-    fn test_create_token_heading() {
+    fn test_create_letter_token() {
+        let literal = String::from("A");
+        let token = Token::new(TokenType::Letter, literal);
+        assert_matches!(token.token_type, TokenType::Letter);
+        assert_matches!(token.literal, literal);
+    }
+
+    #[test]
+    fn test_create_heading_token() {
         let token = Token::new(TokenType::Heading, "".to_string());
         assert_matches!(token.token_type, TokenType::Heading);
     }
