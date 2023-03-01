@@ -32,6 +32,7 @@ impl Lexer {
     pub fn next_token(&mut self) -> Token {
         let tok = match self.ch {
             '#' => Token::new(TokenType::Heading, String::from("")),
+            '\n' => Token::new(TokenType::LineBreak, String::from("")),
             _ => Token::new(TokenType::Letter, String::from(self.ch)),
         };
 
@@ -101,6 +102,17 @@ mod tests {
 
         assert_matches!(tok.token_type, TokenType::Letter);
         assert_eq!(tok.literal, String::from(" "));
+    }
+
+    #[test]
+    fn test_next_token_linebreak() {
+        let input = r#"
+            "#;
+
+        let mut lexer = Lexer::new(&input).unwrap();
+        let tok = lexer.next_token();
+
+        assert_matches!(tok.token_type, TokenType::LineBreak);
     }
 
     #[test]
