@@ -23,8 +23,7 @@ pub enum TokenType {
     Heading,
     Letter,
     LineBreak,
-    OrderedListBegin,
-    OrderedListEnd,
+    OrderedItem,
     Item,
 }
 
@@ -36,8 +35,7 @@ impl fmt::Debug for TokenType {
             TokenType::Heading => write!(f, "TokenType::Heading"),
             TokenType::Letter => write!(f, "TokenType::Letter"),
             TokenType::LineBreak => write!(f, "TokenType::LineBreak"),
-            TokenType::OrderedListBegin => write!(f, "TokenType::OrderedListBegin"),
-            TokenType::OrderedListEnd => write!(f, "TokenType::OrderedListEnd"),
+            TokenType::OrderedItem => write!(f, "TokenType::OrderedItem"),
             TokenType::Item => write!(f, "TokenType::Item"),
         }
     }
@@ -51,8 +49,7 @@ impl fmt::Display for TokenType {
             TokenType::Heading => write!(f, "TokenType::Heading"),
             TokenType::Letter => write!(f, "TokenType::Letter"),
             TokenType::LineBreak => write!(f, "TokenType::LineBreak"),
-            TokenType::OrderedListBegin => write!(f, "TokenType::OrderedListBegin"),
-            TokenType::OrderedListEnd => write!(f, "TokenType::OrderedListEnd"),
+            TokenType::OrderedItem => write!(f, "TokenType::OrderedItem"),
             TokenType::Item => write!(f, "TokenType::Item"),
         }
     }

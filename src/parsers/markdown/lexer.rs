@@ -6,6 +6,7 @@ pub struct Lexer {
     position: usize,
     read_position: usize,
     ch: Option<char>,
+    prev: Option<char>,
 }
 
 impl Lexer {
@@ -23,6 +24,7 @@ impl Lexer {
             position: 0,
             read_position: 0,
             ch: None,
+            prev: None,
         };
 
         return lexer;
@@ -38,7 +40,14 @@ impl Lexer {
         let tok = match self.ch.unwrap() {
             '#' => Token::new(TokenType::Heading, String::from("")),
             '\n' => Token::new(TokenType::LineBreak, String::from("")),
-            _ => Token::new(TokenType::Letter, String::from(self.ch.unwrap())),
+            _ => {
+                if self.ch.unwrap().is_digit(10) && self.prev.unwrap() == '\n' {
+                    self.read_char(); //to skip the dot
+                    Token::new(TokenType::OrderedItem, String::from(""))
+                } else {
+                    Token::new(TokenType::Letter, String::from(self.ch.unwrap()))
+                }
+            }
         };
 
         // println!("returning {}", tok.token_type);
@@ -46,6 +55,7 @@ impl Lexer {
     }
 
     fn read_char(&mut self) {
+        self.prev = self.ch;
         self.ch = self.input.chars().nth(self.read_position);
 
         self.position = self.read_position;
@@ -58,7 +68,7 @@ mod tests {
     use crate::parsers::markdown::TokenType;
 
     use super::Lexer;
-    use claim::{assert_ok, assert_err, assert_matches, assert_none};
+    use claim::{assert_ok, assert_err, assert_matches};
 
     #[test]
     fn test_next_token_ordered_list() {
@@ -66,10 +76,10 @@ mod tests {
                      1. a\n\
                      2. b\n\
                      ";
-        let expected = vec![TokenType::LineBreak, TokenType::OrderedListBegin,
-        TokenType::Item, TokenType::Letter, TokenType::Letter, TokenType::LineBreak,
-        TokenType::Item, TokenType::Letter, TokenType::Letter, TokenType::LineBreak,
-        TokenType::OrderedListEnd, TokenType::EOF];
+        let expected = vec![TokenType::LineBreak, TokenType::OrderedItem,
+        TokenType::Letter, TokenType::Letter, TokenType::LineBreak,
+        TokenType::OrderedItem, TokenType::Letter, TokenType::Letter,
+        TokenType::LineBreak, TokenType::EOF];
         let mut lexer = Lexer::new(&input).unwrap();
 
         for e in expected {
