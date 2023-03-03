@@ -41,7 +41,7 @@ impl Lexer {
             _ => Token::new(TokenType::Letter, String::from(self.ch.unwrap())),
         };
 
-        println!("returning {}", tok.token_type);
+        // println!("returning {}", tok.token_type);
         return Some(tok);
     }
 
@@ -59,6 +59,26 @@ mod tests {
 
     use super::Lexer;
     use claim::{assert_ok, assert_err, assert_matches, assert_none};
+
+    #[test]
+    fn test_next_token_heading_with_paragraph() {
+        let input = r#"# he
+            text"#;
+        let expected = vec![TokenType::Heading, TokenType::Letter,
+        TokenType::Letter, TokenType::Letter, TokenType::LineBreak,
+        TokenType::Letter, TokenType::Letter, TokenType::Letter,
+        TokenType::Letter];
+        let mut lexer = Lexer::new(&input).unwrap();
+
+        for e in expected {
+            println!("expected: {}", e);
+            let tok = lexer.next_token().unwrap();
+            assert_eq!(tok.token_type, e);
+        }
+
+        let tok = lexer.next_token();
+        assert_none!(tok);
+    }
 
     #[test]
     fn test_next_token_heading_with_text() {
@@ -95,6 +115,17 @@ mod tests {
 
         assert_matches!(tok.token_type, TokenType::Letter);
         assert_eq!(tok.literal, String::from(" "));
+    }
+
+    #[test]
+    fn test_next_token_linebreak_then_letter() {
+        let input = r#"
+            a"#;
+
+        let mut lexer = Lexer::new(&input).unwrap();
+
+        assert_matches!(lexer.next_token().unwrap().token_type, TokenType::LineBreak);
+        assert_matches!(lexer.next_token().unwrap().token_type, TokenType::Letter);
     }
 
     #[test]
