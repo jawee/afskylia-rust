@@ -62,12 +62,14 @@ mod tests {
 
     #[test]
     fn test_next_token_heading_with_paragraph() {
-        let input = r#"# he
-            text"#;
+        let input = "# he\n\
+                     text\n\
+                     ";
+
         let expected = vec![TokenType::Heading, TokenType::Letter,
         TokenType::Letter, TokenType::Letter, TokenType::LineBreak,
         TokenType::Letter, TokenType::Letter, TokenType::Letter,
-        TokenType::Letter];
+        TokenType::Letter, TokenType::LineBreak];
         let mut lexer = Lexer::new(&input).unwrap();
 
         for e in expected {
@@ -119,8 +121,8 @@ mod tests {
 
     #[test]
     fn test_next_token_linebreak_then_letter() {
-        let input = r#"
-            a"#;
+        let input = "\n\
+                     a";
 
         let mut lexer = Lexer::new(&input).unwrap();
 
@@ -130,8 +132,8 @@ mod tests {
 
     #[test]
     fn test_next_token_linebreak() {
-        let input = r#"
-            "#;
+        let input = "\n\
+                     ";
 
         let mut lexer = Lexer::new(&input).unwrap();
 
