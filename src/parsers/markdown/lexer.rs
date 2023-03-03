@@ -42,7 +42,7 @@ impl Lexer {
             '\n' => Token::new(TokenType::LineBreak, String::from("")),
             _ => {
                 if self.ch.unwrap().is_digit(10) && self.prev.unwrap() == '\n' {
-                    self.read_char(); //to skip the dot
+                    self.read_char(); //to skip the dot. Which means we can only do 1-9 
                     Token::new(TokenType::OrderedItem, String::from(""))
                 } else {
                     Token::new(TokenType::Letter, String::from(self.ch.unwrap()))
