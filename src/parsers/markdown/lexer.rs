@@ -110,9 +110,8 @@ mod tests {
             "#;
 
         let mut lexer = Lexer::new(&input).unwrap();
-        let tok = lexer.next_token();
 
-        assert_matches!(tok.token_type, TokenType::LineBreak);
+        assert_matches!(lexer.next_token().token_type, TokenType::LineBreak);
     }
 
     #[test]
