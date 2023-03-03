@@ -33,24 +33,20 @@ impl Lexer {
     pub fn next_token(&mut self) -> Option<Token> {
         self.read_char();
 
-        if self.ch.is_none() {
-            return Some(Token::new(TokenType::EOF, String::from("")));
-        }
-
-        let tok = match self.ch.unwrap() {
-            '#' => Token::new(TokenType::Heading, String::from("")),
-            '\n' => Token::new(TokenType::LineBreak, String::from("")),
-            _ => {
+        let tok = match self.ch {
+            Some('#') => Token::new(TokenType::Heading, String::from("")),
+            Some('\n') => Token::new(TokenType::LineBreak, String::from("")),
+            Some(_) => {
                 if self.ch.unwrap().is_digit(10) && self.prev.unwrap() == '\n' {
                     self.read_char(); //to skip the dot. Which means we can only do 1-9 
                     Token::new(TokenType::OrderedItem, String::from(""))
                 } else {
                     Token::new(TokenType::Letter, String::from(self.ch.unwrap()))
                 }
-            }
+            },
+            None => Token::new(TokenType::EOF, String::from(""))
         };
 
-        // println!("returning {}", tok.token_type);
         return Some(tok);
     }
 
