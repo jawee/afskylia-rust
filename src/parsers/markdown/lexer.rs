@@ -5,7 +5,7 @@ pub struct Lexer {
     input: String,
     position: usize,
     read_position: usize,
-    ch: char,
+    ch: Option<char>,
 }
 
 impl Lexer {
@@ -21,32 +21,32 @@ impl Lexer {
         let lexer = Lexer {
             input: input.to_string(),
             position: 0,
-            read_position: 1,
-            ch: input.as_bytes()[0] as char,
+            read_position: 0,
+            ch: None,
         };
 
         return lexer;
     }
 
-    pub fn next_token(&mut self) -> Token {
-        let tok = match self.ch {
-            '#' => Token::new(TokenType::Heading, String::from("")),
-            '\n' => Token::new(TokenType::LineBreak, String::from("")),
-            _ => Token::new(TokenType::Letter, String::from(self.ch)),
-        };
-
+    pub fn next_token(&mut self) -> Option<Token> {
         self.read_char();
 
+        if self.ch.is_none() {
+            return None
+        }
+
+        let tok = match self.ch.unwrap() {
+            '#' => Token::new(TokenType::Heading, String::from("")),
+            '\n' => Token::new(TokenType::LineBreak, String::from("")),
+            _ => Token::new(TokenType::Letter, String::from(self.ch.unwrap())),
+        };
+
         println!("returning {}", tok.token_type);
-        return tok;
+        return Some(tok);
     }
 
     fn read_char(&mut self) {
-        if self.read_position >= self.input.len() {
-            self.ch = '0';
-        } else {
-            self.ch = self.input.as_bytes()[self.read_position] as char;
-        }
+        self.ch = self.input.chars().nth(self.read_position);
 
         self.position = self.read_position;
         self.read_position += 1;
@@ -58,7 +58,7 @@ mod tests {
     use crate::parsers::markdown::TokenType;
 
     use super::Lexer;
-    use claim::{assert_ok, assert_err, assert_matches};
+    use claim::{assert_ok, assert_err, assert_matches, assert_none};
 
     #[test]
     fn test_next_token_heading_with_text() {
@@ -67,12 +67,12 @@ mod tests {
         let mut lexer = Lexer::new(&input).unwrap();
 
         for e in expected {
-            let tok = lexer.next_token();
+            let tok = lexer.next_token().unwrap();
             assert_eq!(tok.token_type, e);
         }
 
         let tok = lexer.next_token();
-        assert_eq!(tok.token_type, TokenType::Letter);
+        assert_none!(tok);
     }
 
     #[test]
@@ -80,9 +80,9 @@ mod tests {
         let input = "##";
 
         let mut lexer = Lexer::new(&input).unwrap();
-        let mut tok = lexer.next_token();
+        let mut tok = lexer.next_token().unwrap();
         assert_matches!(tok.token_type, TokenType::Heading);
-        tok = lexer.next_token();
+        tok = lexer.next_token().unwrap();
         assert_matches!(tok.token_type, TokenType::Heading);
     }
 
@@ -91,7 +91,7 @@ mod tests {
         let input = " ";
 
         let mut lexer = Lexer::new(&input).unwrap();
-        let tok = lexer.next_token();
+        let tok = lexer.next_token().unwrap();
 
         assert_matches!(tok.token_type, TokenType::Letter);
         assert_eq!(tok.literal, String::from(" "));
@@ -104,7 +104,7 @@ mod tests {
 
         let mut lexer = Lexer::new(&input).unwrap();
 
-        assert_matches!(lexer.next_token().token_type, TokenType::LineBreak);
+        assert_matches!(lexer.next_token().unwrap().token_type, TokenType::LineBreak);
     }
 
     #[test]
@@ -112,7 +112,7 @@ mod tests {
         let input = "a";
 
         let mut lexer = Lexer::new(&input).unwrap();
-        let tok = lexer.next_token();
+        let tok = lexer.next_token().unwrap();
 
         assert_matches!(tok.token_type, TokenType::Letter);
         assert_eq!(tok.literal, String::from("a"));
@@ -123,7 +123,7 @@ mod tests {
         let input = "#";
 
         let mut lexer = Lexer::new(&input).unwrap();
-        let tok = lexer.next_token();
+        let tok = lexer.next_token().unwrap();
 
         assert_matches!(tok.token_type, TokenType::Heading);
     }
