@@ -18,19 +18,27 @@ impl Token {
 
 #[derive(PartialEq, Clone, Copy)]
 pub enum TokenType {
+    EOF,
     Unknown,
     Heading,
     Letter,
     LineBreak,
+    OrderedListBegin,
+    OrderedListEnd,
+    Item,
 }
 
 impl fmt::Debug for TokenType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            TokenType::EOF => write!(f, "TokenType::EOF"),
             TokenType::Unknown => write!(f, "TokenType::Unknown"),
             TokenType::Heading => write!(f, "TokenType::Heading"),
             TokenType::Letter => write!(f, "TokenType::Letter"),
             TokenType::LineBreak => write!(f, "TokenType::LineBreak"),
+            TokenType::OrderedListBegin => write!(f, "TokenType::OrderedListBegin"),
+            TokenType::OrderedListEnd => write!(f, "TokenType::OrderedListEnd"),
+            TokenType::Item => write!(f, "TokenType::Item"),
         }
     }
 }
@@ -38,10 +46,14 @@ impl fmt::Debug for TokenType {
 impl fmt::Display for TokenType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            TokenType::EOF => write!(f, "TokenType::EOF"),
             TokenType::Unknown => write!(f, "TokenType::Unknown"),
             TokenType::Heading => write!(f, "TokenType::Heading"),
             TokenType::Letter => write!(f, "TokenType::Letter"),
             TokenType::LineBreak => write!(f, "TokenType::LineBreak"),
+            TokenType::OrderedListBegin => write!(f, "TokenType::OrderedListBegin"),
+            TokenType::OrderedListEnd => write!(f, "TokenType::OrderedListEnd"),
+            TokenType::Item => write!(f, "TokenType::Item"),
         }
     }
 }
@@ -58,7 +70,7 @@ mod tests {
         let literal = String::from("A");
         let token = Token::new(TokenType::Letter, literal);
         assert_matches!(token.token_type, TokenType::Letter);
-        assert_matches!(token.literal, literal);
+        assert_eq!(token.literal, String::from("A"));
     }
 
     #[test]

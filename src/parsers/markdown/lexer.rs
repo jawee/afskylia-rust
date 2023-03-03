@@ -32,7 +32,7 @@ impl Lexer {
         self.read_char();
 
         if self.ch.is_none() {
-            return None
+            return Some(Token::new(TokenType::EOF, String::from("")));
         }
 
         let tok = match self.ch.unwrap() {
@@ -61,6 +61,25 @@ mod tests {
     use claim::{assert_ok, assert_err, assert_matches, assert_none};
 
     #[test]
+    fn test_next_token_ordered_list() {
+        let input = "\n\
+                     1. a\n\
+                     2. b\n\
+                     ";
+        let expected = vec![TokenType::LineBreak, TokenType::OrderedListBegin,
+        TokenType::Item, TokenType::Letter, TokenType::Letter, TokenType::LineBreak,
+        TokenType::Item, TokenType::Letter, TokenType::Letter, TokenType::LineBreak,
+        TokenType::OrderedListEnd, TokenType::EOF];
+        let mut lexer = Lexer::new(&input).unwrap();
+
+        for e in expected {
+            println!("expected: {}", e);
+            let tok = lexer.next_token().unwrap();
+            assert_eq!(tok.token_type, e);
+        }
+    }
+
+    #[test]
     fn test_next_token_heading_with_paragraph() {
         let input = "# he\n\
                      text\n\
@@ -69,7 +88,7 @@ mod tests {
         let expected = vec![TokenType::Heading, TokenType::Letter,
         TokenType::Letter, TokenType::Letter, TokenType::LineBreak,
         TokenType::Letter, TokenType::Letter, TokenType::Letter,
-        TokenType::Letter, TokenType::LineBreak];
+        TokenType::Letter, TokenType::LineBreak, TokenType::EOF];
         let mut lexer = Lexer::new(&input).unwrap();
 
         for e in expected {
@@ -77,24 +96,19 @@ mod tests {
             let tok = lexer.next_token().unwrap();
             assert_eq!(tok.token_type, e);
         }
-
-        let tok = lexer.next_token();
-        assert_none!(tok);
     }
 
     #[test]
     fn test_next_token_heading_with_text() {
         let input = "# He";
-        let expected = vec![TokenType::Heading, TokenType::Letter, TokenType::Letter, TokenType::Letter];
+        let expected = vec![TokenType::Heading, TokenType::Letter,
+        TokenType::Letter, TokenType::Letter, TokenType::EOF];
         let mut lexer = Lexer::new(&input).unwrap();
 
         for e in expected {
             let tok = lexer.next_token().unwrap();
             assert_eq!(tok.token_type, e);
         }
-
-        let tok = lexer.next_token();
-        assert_none!(tok);
     }
 
     #[test]
