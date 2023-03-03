@@ -23,7 +23,6 @@ impl Lexer {
             position: 0,
             read_position: 1,
             ch: input.as_bytes()[0] as char,
-
         };
 
         return lexer;
@@ -56,7 +55,6 @@ impl Lexer {
 
 #[cfg(test)]
 mod tests {
-
     use crate::parsers::markdown::TokenType;
 
     use super::Lexer;
@@ -65,21 +63,16 @@ mod tests {
     #[test]
     fn test_next_token_heading_with_text() {
         let input = "# He";
-        let mut expected = vec![TokenType::Heading, TokenType::Letter, TokenType::Letter, TokenType::Letter];
+        let expected = vec![TokenType::Heading, TokenType::Letter, TokenType::Letter, TokenType::Letter];
         let mut lexer = Lexer::new(&input).unwrap();
 
-        let mut actual = Vec::new(); 
-
-        for _ in 0..4 {
+        for e in expected {
             let tok = lexer.next_token();
-            actual.push(tok.token_type);
+            assert_eq!(tok.token_type, e);
         }
 
-        for _ in 0..expected.len() {
-            let atok = actual.pop().unwrap();
-            let etok = expected.pop().unwrap();
-            assert_eq!(atok, etok);
-        }
+        let tok = lexer.next_token();
+        assert_eq!(tok.token_type, TokenType::Letter);
     }
 
     #[test]
