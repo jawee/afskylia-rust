@@ -14,13 +14,13 @@ impl HtmlGenerator {
 
         let mut i = self.lexer.next_token();
         while i.token_type != TokenType::EOF {
-            println!("{}", i.token_type);
+            // println!("{}", i.token_type);
             if i.token_type == TokenType::EOF {
                 break;
             }
 
             let token_html = self.get_html_for_token(i)?;
-            println!("pushing {}", token_html);
+            // println!("pushing {}", token_html);
             str_vec.push(token_html);
 
             i = self.lexer.next_token();
@@ -62,10 +62,16 @@ impl HtmlGenerator {
                 let mut i = token;
                 while i.token_type != TokenType::EOF {
                     let peek_token = self.lexer.peek_next_token();
-                    if i.token_type == TokenType::EOF {
-                        break;
-                    }
-                    if i.token_type == TokenType::LineBreak && (peek_token.token_type == TokenType::LineBreak || peek_token.token_type == TokenType::EOF) {
+
+                    // println!("{:?} -> {:?}", i, peek_token);
+
+                    if i.token_type == TokenType::LineBreak 
+                        && 
+                        (peek_token.token_type == TokenType::LineBreak 
+                         || 
+                         peek_token.token_type == TokenType::EOF
+                        ) {
+                        println!("breaking");
                         break;
                     }
                     str_vec.push(i.literal);
@@ -78,7 +84,6 @@ impl HtmlGenerator {
             TokenType::EOF => String::from(""),
             _ => todo!(),
         };
-        // println!("TokenType: {}. Result {}", next_token.token_type, str);
         return Ok(str);
     }
 }
@@ -89,6 +94,18 @@ mod tests {
 
     use super::HtmlGenerator;
 
+    #[test]
+    fn get_two_paragraphs() {
+        let input = "Lorem ipsum\n\n\
+                     Lorem ipsum";
+        let expected = "<p>Lorem ipsum</p><p>Lorem ipsum</p>";
+
+        let lexer = Lexer::new(input).unwrap();
+        let mut html_generator = HtmlGenerator::new(lexer);
+
+        let result = html_generator.get_html().unwrap();
+        assert_eq!(result, expected);
+    }
     #[test]
     fn get_one_paragraph() {
         let input = "Lorem ipsum";

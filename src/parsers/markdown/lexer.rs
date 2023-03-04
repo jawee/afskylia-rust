@@ -31,7 +31,7 @@ impl Lexer {
     }
 
     pub fn peek_next_token(&mut self) -> Token {
-        let next_ch = self.input.chars().nth(self.read_position + 1);
+        let next_ch = self.input.chars().nth(self.read_position);
          
         let tok = match next_ch {
             Some('#') => Token::new(TokenType::Heading, String::from("")),
@@ -85,6 +85,37 @@ mod tests {
 
     use super::Lexer;
     use claim::{assert_ok, assert_err, assert_matches};
+
+    #[test]
+    fn peek_next_token() {
+        let input = "L\n";
+        
+        let mut lexer = Lexer::new(&input).unwrap();
+
+        let token = lexer.next_token();
+        let peek_token = lexer.peek_next_token();
+
+        assert_eq!(token.token_type, TokenType::Letter);
+        assert_eq!(peek_token.token_type, TokenType::LineBreak);
+    }
+    #[test]
+    fn two_paragraphs() {
+        let input = "Lo\n\
+                     \n\
+                     um";
+
+        let expected = vec![TokenType::Letter, TokenType::Letter,
+        TokenType::LineBreak, TokenType::LineBreak, TokenType::Letter,
+        TokenType::Letter];
+
+        let mut lexer = Lexer::new(&input).unwrap();
+
+        for e in expected {
+            println!("expected: {}", e);
+            let tok = lexer.next_token();
+            assert_eq!(tok.token_type, e);
+        }
+    }
 
     #[test]
     fn next_token_ordered_list() {
