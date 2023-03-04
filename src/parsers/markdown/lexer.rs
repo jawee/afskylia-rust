@@ -57,7 +57,7 @@ impl Lexer {
             Some('#') => Token::new(TokenType::Heading, String::from("")),
             Some('\n') => Token::new(TokenType::LineBreak, String::from("")),
             Some(_) => {
-                if self.ch.unwrap().is_digit(10) && self.prev.unwrap() == '\n' {
+                if self.ch.unwrap().is_digit(10) && (self.prev.is_none() || self.prev.unwrap() == '\n') {
                     self.read_char(); //to skip the dot. Which means we can only do 1-9 
                     Token::new(TokenType::OrderedItem, String::from(""))
                 } else {
@@ -107,6 +107,42 @@ mod tests {
         let expected = vec![TokenType::Letter, TokenType::Letter,
         TokenType::LineBreak, TokenType::LineBreak, TokenType::Letter,
         TokenType::Letter];
+
+        let mut lexer = Lexer::new(&input).unwrap();
+
+        for e in expected {
+            println!("expected: {}", e);
+            let tok = lexer.next_token();
+            assert_eq!(tok.token_type, e);
+        }
+    }
+
+    #[test]
+    fn next_token_ordered_list_2() {
+        let input = "1. A\n\
+                     2. B\n\
+                     ";
+        let expected = vec![TokenType::OrderedItem, TokenType::Letter,
+        TokenType::Letter, TokenType::LineBreak, TokenType::OrderedItem,
+        TokenType::Letter, TokenType::Letter, TokenType::LineBreak,
+        TokenType::EOF];
+
+        let mut lexer = Lexer::new(&input).unwrap();
+
+        for e in expected {
+            println!("expected: {}", e);
+            let tok = lexer.next_token();
+            assert_eq!(tok.token_type, e);
+        }
+    }
+
+    #[test]
+    fn next_token_ordered_list_1() {
+        let input = "1. A\n\
+                     2. B";
+        let expected = vec![TokenType::OrderedItem, TokenType::Letter,
+        TokenType::Letter, TokenType::LineBreak, TokenType::OrderedItem,
+        TokenType::Letter, TokenType::Letter, TokenType::EOF];
 
         let mut lexer = Lexer::new(&input).unwrap();
 
