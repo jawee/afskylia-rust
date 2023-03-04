@@ -11,7 +11,9 @@ impl HtmlGenerator {
 
     pub fn get_html(&mut self) -> Result<String, String> {
         let mut str_vec: Vec<String> = vec![];
-        while let Some(i) = self.lexer.next_token() {
+
+        let mut i = self.lexer.next_token();
+        while i.token_type != TokenType::EOF {
             println!("{}", i.token_type);
             if i.token_type == TokenType::EOF {
                 break;
@@ -20,6 +22,8 @@ impl HtmlGenerator {
             let token_html = self.get_html_for_token(i)?;
             println!("pushing {}", token_html);
             str_vec.push(token_html);
+
+            i = self.lexer.next_token();
         }
 
         return Ok(str_vec.join(""));
@@ -30,24 +34,46 @@ impl HtmlGenerator {
             TokenType::Heading => {
 
                 let mut heading_level = 1 as usize;
-                while let Some(i) = self.lexer.next_token() {
+
+                let mut i = self.lexer.next_token();
+                while i.token_type != TokenType::EOF {
                     if i.token_type == TokenType::Letter && i.literal == " " {
                         break;
                     }
                     heading_level += 1;
+                    i = self.lexer.next_token();
                 };
                 
                 let mut str_vec: Vec<String> = vec![format!("<h{}>", heading_level)];
-                while let Some(i) = self.lexer.next_token() {
+
+                i = self.lexer.next_token();
+                while i.token_type != TokenType::EOF {
                     if i.token_type == TokenType::EOF || i.token_type == TokenType::LineBreak {
-                        str_vec.push(format!("</h{}>", heading_level));
                         break;
                     }
                     str_vec.push(i.literal);
+                    i = self.lexer.next_token();
                 };
+                str_vec.push(format!("</h{}>", heading_level));
                 str_vec.join("")
             },
-            TokenType::Letter => token.literal,
+            TokenType::Letter => {
+                let mut str_vec: Vec<String> = vec![format!("<p>")];
+                let mut i = self.lexer.next_token();
+                while i.token_type != TokenType::EOF {
+                    let peek_token = self.lexer.peek_next_token();
+                    if i.token_type == TokenType::EOF {
+                        break;
+                    }
+                    if i.token_type == TokenType::LineBreak && (peek_token.token_type == TokenType::LineBreak || peek_token.token_type == TokenType::EOF) {
+                        break;
+                    }
+                    str_vec.push(i.literal);
+                    i = self.lexer.next_token();
+                };
+                str_vec.join("")
+                // token.literal
+            },
             TokenType::EOF => String::from(""),
             _ => todo!(),
         };

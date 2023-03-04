@@ -30,7 +30,27 @@ impl Lexer {
         return lexer;
     }
 
-    pub fn next_token(&mut self) -> Option<Token> {
+    pub fn peek_next_token(&mut self) -> Token {
+        let next_ch = self.input.chars().nth(self.read_position + 1);
+         
+        let tok = match next_ch {
+            Some('#') => Token::new(TokenType::Heading, String::from("")),
+            Some('\n') => Token::new(TokenType::LineBreak, String::from("")),
+            Some(_) => {
+                if self.ch.unwrap().is_digit(10) && self.prev.unwrap() == '\n' {
+                    self.read_char(); //to skip the dot. Which means we can only do 1-9 
+                    Token::new(TokenType::OrderedItem, String::from(""))
+                } else {
+                    Token::new(TokenType::Letter, String::from(self.ch.unwrap()))
+                }
+            },
+            None => Token::new(TokenType::EOF, String::from(""))
+        };
+
+        return tok;
+    }
+
+    pub fn next_token(&mut self) -> Token {
         self.read_char();
 
         let tok = match self.ch {
@@ -47,7 +67,7 @@ impl Lexer {
             None => Token::new(TokenType::EOF, String::from(""))
         };
 
-        return Some(tok);
+        return tok;
     }
 
     fn read_char(&mut self) {
@@ -80,7 +100,7 @@ mod tests {
 
         for e in expected {
             println!("expected: {}", e);
-            let tok = lexer.next_token().unwrap();
+            let tok = lexer.next_token();
             assert_eq!(tok.token_type, e);
         }
     }
@@ -99,7 +119,7 @@ mod tests {
 
         for e in expected {
             println!("expected: {}", e);
-            let tok = lexer.next_token().unwrap();
+            let tok = lexer.next_token();
             assert_eq!(tok.token_type, e);
         }
     }
@@ -112,7 +132,7 @@ mod tests {
         let mut lexer = Lexer::new(&input).unwrap();
 
         for e in expected {
-            let tok = lexer.next_token().unwrap();
+            let tok = lexer.next_token();
             assert_eq!(tok.token_type, e);
         }
     }
@@ -122,9 +142,9 @@ mod tests {
         let input = "##";
 
         let mut lexer = Lexer::new(&input).unwrap();
-        let mut tok = lexer.next_token().unwrap();
+        let mut tok = lexer.next_token();
         assert_matches!(tok.token_type, TokenType::Heading);
-        tok = lexer.next_token().unwrap();
+        tok = lexer.next_token();
         assert_matches!(tok.token_type, TokenType::Heading);
     }
 
@@ -133,7 +153,7 @@ mod tests {
         let input = " ";
 
         let mut lexer = Lexer::new(&input).unwrap();
-        let tok = lexer.next_token().unwrap();
+        let tok = lexer.next_token();
 
         assert_matches!(tok.token_type, TokenType::Letter);
         assert_eq!(tok.literal, String::from(" "));
@@ -146,8 +166,8 @@ mod tests {
 
         let mut lexer = Lexer::new(&input).unwrap();
 
-        assert_matches!(lexer.next_token().unwrap().token_type, TokenType::LineBreak);
-        assert_matches!(lexer.next_token().unwrap().token_type, TokenType::Letter);
+        assert_matches!(lexer.next_token().token_type, TokenType::LineBreak);
+        assert_matches!(lexer.next_token().token_type, TokenType::Letter);
     }
 
     #[test]
@@ -157,7 +177,7 @@ mod tests {
 
         let mut lexer = Lexer::new(&input).unwrap();
 
-        assert_matches!(lexer.next_token().unwrap().token_type, TokenType::LineBreak);
+        assert_matches!(lexer.next_token().token_type, TokenType::LineBreak);
     }
 
     #[test]
@@ -165,7 +185,7 @@ mod tests {
         let input = "a";
 
         let mut lexer = Lexer::new(&input).unwrap();
-        let tok = lexer.next_token().unwrap();
+        let tok = lexer.next_token();
 
         assert_matches!(tok.token_type, TokenType::Letter);
         assert_eq!(tok.literal, String::from("a"));
@@ -176,7 +196,7 @@ mod tests {
         let input = "#";
 
         let mut lexer = Lexer::new(&input).unwrap();
-        let tok = lexer.next_token().unwrap();
+        let tok = lexer.next_token();
 
         assert_matches!(tok.token_type, TokenType::Heading);
     }
