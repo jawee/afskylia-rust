@@ -28,11 +28,19 @@ impl HtmlGenerator {
     fn get_html_for_token(&mut self, token: Token) -> Result<String, String> {
         let str = match token.token_type {
             TokenType::Heading => {
-                let mut str_vec: Vec<String> = vec![String::from("<h1>")];
+
+                let mut heading_level = 1 as usize;
+                while let Some(i) = self.lexer.next_token() {
+                    if i.token_type == TokenType::Letter && i.literal == " " {
+                        break;
+                    }
+                    heading_level += 1;
+                };
                 
+                let mut str_vec: Vec<String> = vec![format!("<h{}>", heading_level)];
                 while let Some(i) = self.lexer.next_token() {
                     if i.token_type == TokenType::EOF || i.token_type == TokenType::LineBreak {
-                        str_vec.push(String::from("</h1>"));
+                        str_vec.push(format!("</h{}>", heading_level));
                         break;
                     }
                     str_vec.push(i.literal);
@@ -53,6 +61,30 @@ mod tests {
     use crate::parsers::markdown::Lexer;
 
     use super::HtmlGenerator;
+
+    #[test]
+    fn get_one_paragraph() {
+        let input = "Lorem ipsum";
+        let expected = "<p>Lorem ipsum</p>";
+
+        let lexer = Lexer::new(input).unwrap();
+        let mut html_generator = HtmlGenerator::new(lexer);
+
+        let result = html_generator.get_html().unwrap();
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn get_html_heading_2() {
+        let input = "## He";
+        let expected = "<h2>He</h2>";
+
+        let lexer = Lexer::new(input).unwrap();
+        let mut html_generator = HtmlGenerator::new(lexer);
+
+        let result = html_generator.get_html().unwrap();
+        assert_eq!(result, expected);
+    }
 
     #[test]
     fn get_html_heading() {
