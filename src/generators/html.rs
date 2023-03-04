@@ -99,6 +99,20 @@ mod tests {
     use super::HtmlGenerator;
 
     #[test]
+    fn get_heading_with_paragraph() {
+        let input = "# Heading\n\
+                     Lorem ipsum\n\
+                     \n\
+                     Lorem ipsum";
+        let expected = "<h1>Heading</h1><p>Lorem ipsum</p><p>Lorem ipsum</p>";
+
+        let lexer = Lexer::new(input).unwrap();
+        let mut html_generator = HtmlGenerator::new(lexer);
+
+        let result = html_generator.get_html().unwrap();
+        assert_eq!(result, expected);
+    }
+    #[test]
     fn get_two_paragraphs() {
         let input = "Lorem ipsum\n\n\
                      Lorem ipsum";
