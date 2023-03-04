@@ -10,26 +10,41 @@ impl HtmlGenerator {
     }
 
     pub fn get_html(&mut self) -> Result<String, String> {
+        let mut str_vec: Vec<String> = vec![];
         while let Some(i) = self.lexer.next_token() {
+            println!("{}", i.token_type);
             if i.token_type == TokenType::EOF {
                 break;
             }
-            println!("{:?}", i);
-            let _token_html = self.get_html_for_token(i);
+
+            let token_html = self.get_html_for_token(i)?;
+            println!("pushing {}", token_html);
+            str_vec.push(token_html);
         }
 
-        return Ok(String::from("<h1>Hello</h1>"));
+        return Ok(str_vec.join(""));
     }
 
-    fn get_html_for_token(&mut self, token: Token) -> String {
-        // let maybe_next_token = self.lexer.next_token();
-        // let next_token = match maybe_next_token {
-        //     None => Err("Something went wrong"),
-        //     Some(t) => {
-        //         Ok(t)
-        //     }
-        // };
-        return "".to_string();
+    fn get_html_for_token(&mut self, token: Token) -> Result<String, String> {
+        let str = match token.token_type {
+            TokenType::Heading => {
+                let mut str_vec: Vec<String> = vec![String::from("<h1>")];
+                
+                while let Some(i) = self.lexer.next_token() {
+                    if i.token_type == TokenType::EOF || i.token_type == TokenType::LineBreak {
+                        str_vec.push(String::from("</h1>"));
+                        break;
+                    }
+                    str_vec.push(i.literal);
+                };
+                str_vec.join("")
+            },
+            TokenType::Letter => token.literal,
+            TokenType::EOF => String::from(""),
+            _ => todo!(),
+        };
+        // println!("TokenType: {}. Result {}", next_token.token_type, str);
+        return Ok(str);
     }
 }
 
@@ -41,8 +56,8 @@ mod tests {
 
     #[test]
     fn get_html_heading() {
-        let input = "# Hello";
-        let expected = "<h1>Hello</h1>";
+        let input = "# He";
+        let expected = "<h1>He</h1>";
 
         let lexer = Lexer::new(input).unwrap();
         let mut html_generator = HtmlGenerator::new(lexer);
