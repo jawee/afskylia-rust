@@ -1,2 +1,2 @@
-mod markdown;
+pub(crate) mod markdown;
 

@@ -67,7 +67,7 @@ mod tests {
     use claim::{assert_ok, assert_err, assert_matches};
 
     #[test]
-    fn test_next_token_ordered_list() {
+    fn next_token_ordered_list() {
         let input = "\n\
                      1. a\n\
                      2. b\n\
@@ -86,7 +86,7 @@ mod tests {
     }
 
     #[test]
-    fn test_next_token_heading_with_paragraph() {
+    fn next_token_heading_with_paragraph() {
         let input = "# he\n\
                      text\n\
                      ";
@@ -105,7 +105,7 @@ mod tests {
     }
 
     #[test]
-    fn test_next_token_heading_with_text() {
+    fn next_token_heading_with_text() {
         let input = "# He";
         let expected = vec![TokenType::Heading, TokenType::Letter,
         TokenType::Letter, TokenType::Letter, TokenType::EOF];
@@ -118,7 +118,7 @@ mod tests {
     }
 
     #[test]
-    fn test_next_token_heading_twice() {
+    fn next_token_heading_twice() {
         let input = "##";
 
         let mut lexer = Lexer::new(&input).unwrap();
@@ -129,7 +129,7 @@ mod tests {
     }
 
     #[test]
-    fn test_next_token_letter_space() {
+    fn next_token_letter_space() {
         let input = " ";
 
         let mut lexer = Lexer::new(&input).unwrap();
@@ -140,7 +140,7 @@ mod tests {
     }
 
     #[test]
-    fn test_next_token_linebreak_then_letter() {
+    fn next_token_linebreak_then_letter() {
         let input = "\n\
                      a";
 
@@ -151,7 +151,7 @@ mod tests {
     }
 
     #[test]
-    fn test_next_token_linebreak() {
+    fn next_token_linebreak() {
         let input = "\n\
                      ";
 
@@ -161,7 +161,7 @@ mod tests {
     }
 
     #[test]
-    fn test_next_token_letter_a() {
+    fn next_token_letter_a() {
         let input = "a";
 
         let mut lexer = Lexer::new(&input).unwrap();
@@ -172,7 +172,7 @@ mod tests {
     }
 
     #[test]
-    fn test_next_token_heading() {
+    fn next_token_heading() {
         let input = "#";
 
         let mut lexer = Lexer::new(&input).unwrap();

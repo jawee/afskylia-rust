@@ -63,7 +63,7 @@ mod tests {
     use super::{Token, TokenType};
 
     #[test]
-    fn test_create_letter_token() {
+    fn create_letter_token() {
         let literal = String::from("A");
         let token = Token::new(TokenType::Letter, literal);
         assert_matches!(token.token_type, TokenType::Letter);
@@ -71,13 +71,8 @@ mod tests {
     }
 
     #[test]
-    fn test_create_heading_token() {
+    fn create_heading_token() {
         let token = Token::new(TokenType::Heading, "".to_string());
         assert_matches!(token.token_type, TokenType::Heading);
-    }
-
-    #[test]
-    fn test() {
-        assert_eq!(true, true)
     }
 }
