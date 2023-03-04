@@ -71,6 +71,7 @@ impl HtmlGenerator {
                          || 
                          peek_token.token_type == TokenType::EOF
                         ) {
+                        self.lexer.next_token();
                         println!("breaking");
                         break;
                     }
@@ -82,7 +83,10 @@ impl HtmlGenerator {
                 // token.literal
             },
             TokenType::EOF => String::from(""),
-            _ => todo!(),
+            _ => {
+                println!("{:?}", token);
+                todo!()
+            },
         };
         return Ok(str);
     }
