@@ -54,7 +54,12 @@ impl Lexer {
         self.read_char();
 
         let tok = match self.ch {
-            Some('#') => Token::new(TokenType::Heading, String::from("")),
+            Some('#') => {
+                if self.prev.is_none() || self.prev.unwrap() == '\n' || self.prev.unwrap() == '#' {
+                    return Token::new(TokenType::Heading, String::from(""));
+                }
+                return Token::new(TokenType::Letter, String::from("#"));
+            },
             Some('\n') => Token::new(TokenType::LineBreak, String::from("")),
             Some(_) => {
                 if self.ch.unwrap().is_digit(10) && (self.prev.is_none() || self.prev.unwrap() == '\n') {
@@ -98,6 +103,24 @@ mod tests {
         assert_eq!(token.token_type, TokenType::Letter);
         assert_eq!(peek_token.token_type, TokenType::LineBreak);
     }
+
+    #[test]
+    fn paragraph_with_number_and_hash() {
+        let input = "Lo12#";
+
+        let expected = vec![TokenType::Letter, TokenType::Letter,
+        TokenType::Letter, TokenType::Letter, TokenType::Letter,
+        TokenType::EOF];
+
+        let mut lexer = Lexer::new(&input).unwrap();
+
+        for e in expected {
+            println!("expected: {}", e);
+            let tok = lexer.next_token();
+            assert_eq!(tok.token_type, e);
+        }
+    }
+    
     #[test]
     fn two_paragraphs() {
         let input = "Lo\n\
