@@ -99,6 +99,20 @@ mod tests {
     use super::HtmlGenerator;
 
     #[test]
+    fn get_ordered_list() {
+        let input = "1. A\n\
+                     2. B\
+                     ";
+        let expected = "<ol><li>A</li><li>B</li></ol>";
+
+        let lexer = Lexer::new(input).unwrap();
+        let mut html_generator = HtmlGenerator::new(lexer);
+
+        let result = html_generator.get_html().unwrap();
+        assert_eq!(result, expected);
+    }
+
+    #[test]
     fn get_heading_with_paragraph() {
         let input = "# Heading\n\
                      Lorem ipsum\n\
@@ -112,6 +126,7 @@ mod tests {
         let result = html_generator.get_html().unwrap();
         assert_eq!(result, expected);
     }
+
     #[test]
     fn get_two_paragraphs() {
         let input = "Lorem ipsum\n\n\
