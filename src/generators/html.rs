@@ -63,8 +63,6 @@ impl HtmlGenerator {
                 while i.token_type != TokenType::EOF {
                     let peek_token = self.lexer.peek_next_token();
 
-                    // println!("{:?} -> {:?}", i, peek_token);
-
                     if i.token_type == TokenType::LineBreak 
                         && 
                         (peek_token.token_type == TokenType::LineBreak 
@@ -80,9 +78,18 @@ impl HtmlGenerator {
                 };
                 str_vec.push(format!("</p>"));
                 str_vec.join("")
-                // token.literal
             },
             TokenType::EOF => String::from(""),
+            TokenType::OrderedItem => {
+                let mut str_vec: Vec<String> = vec![format!("<li>")];
+                let mut i = token;
+                while i.token_type != TokenType::EOF && i.token_type != TokenType::LineBreak {
+                    str_vec.push(i.literal);
+                    i = self.lexer.next_token();
+                };
+                str_vec.push(format!("</li>"));
+                str_vec.join("")
+            },
             _ => {
                 println!("{:?}", token);
                 todo!()
@@ -104,6 +111,18 @@ mod tests {
                      2. B\
                      ";
         let expected = "<ol><li>A</li><li>B</li></ol>";
+
+        let lexer = Lexer::new(input).unwrap();
+        let mut html_generator = HtmlGenerator::new(lexer);
+
+        let result = html_generator.get_html().unwrap();
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn get_paragraph_with_number_and_hash() {
+        let input = "Lorem ipsum 1#";
+        let expected = "<p>Lorem ipsum 1#</p>";
 
         let lexer = Lexer::new(input).unwrap();
         let mut html_generator = HtmlGenerator::new(lexer);
