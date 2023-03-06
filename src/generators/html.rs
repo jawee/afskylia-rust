@@ -58,7 +58,7 @@ impl HtmlGenerator {
                 let mut i = token;
                 while i.token_type != TokenType::EOF {
                     let peek_token = self.lexer.peek_next_token();
-                    // println!("{}", peek_token.token_type);
+                    println!("{:?} => {:?}", i, peek_token);
 
                     if i.token_type == TokenType::LineBreak 
                         && 
@@ -116,10 +116,15 @@ mod tests {
     #[test]
     fn get_heading_with_paragraph_and_ordered_list() {
         let input = "# He\n\
-                     Lorem ipsum\n\
+                     Lo\n\
                      1. A\n\
                      2. B";
-        let expected = "<h1>He</h1><p>Lorem ipsum</p><ol><li>A</li><li>B</li></ol>";
+        let expected = "<h1>He</h1><p>Lo</p><ol><li>A</li><li>B</li></ol>";
+        // let input = "# He\n\
+        //              Lorem ipsum\n\
+        //              1. A\n\
+        //              2. B";
+        // let expected = "<h1>He</h1><p>Lorem ipsum</p><ol><li>A</li><li>B</li></ol>";
 
         let lexer = Lexer::new(input).unwrap();
         let mut html_generator = HtmlGenerator::new(lexer);

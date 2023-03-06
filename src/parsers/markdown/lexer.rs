@@ -37,8 +37,10 @@ impl Lexer {
             Some('#') => Token::new(TokenType::Heading, String::from("")),
             Some('\n') => Token::new(TokenType::LineBreak, String::from("")),
             Some(_) => {
-                if self.ch.unwrap().is_digit(10) && self.prev.unwrap() == '\n' {
+                let prev = self.input.chars().nth(self.read_position-1);
+                if self.ch.unwrap().is_digit(10) && (prev.is_none() || prev.unwrap() == '\n') {
                     self.read_char(); //to skip the dot. Which means we can only do 1-9 
+                    self.read_char(); //skip the whitespace
                     Token::new(TokenType::OrderedItem, String::from(""))
                 } else {
                     Token::new(TokenType::Letter, String::from(self.ch.unwrap()))
@@ -96,6 +98,48 @@ mod tests {
     use super::Lexer;
     use claim::{assert_ok, assert_err, assert_matches};
 
+    #[test]
+    fn peek_next_token_paragraph_orderdlist() {
+        let input = "L\n\
+                     1. A";
+
+        let expected = vec![TokenType::Letter, TokenType::LineBreak,
+        TokenType::OrderedItem, TokenType::Letter, TokenType::EOF];
+        let mut lexer = Lexer::new(&input).unwrap();
+
+        for (i, e) in expected.iter().enumerate() {
+            let _tok = lexer.next_token();
+            if i+1 < expected.len() {
+                assert_eq!(lexer.peek_next_token().token_type, expected[i+1]);
+            }
+        }
+    }
+
+    #[test]
+    fn peek_next_token_two_linebreaks_orderdlist() {
+        let input = "\n\
+                     \n\
+                     1. A";
+
+        let mut lexer = Lexer::new(&input).unwrap();
+
+        lexer.next_token();
+        lexer.next_token();
+        let peek_token = lexer.peek_next_token();
+        assert_eq!(peek_token.token_type, TokenType::OrderedItem);
+    }
+
+    #[test]
+    fn peek_next_token_one_linebreaks_orderdlist() {
+        let input = "\n\
+                     1. A";
+
+        let mut lexer = Lexer::new(&input).unwrap();
+
+        lexer.next_token();
+        let peek_token = lexer.peek_next_token();
+        assert_eq!(peek_token.token_type, TokenType::OrderedItem);
+    }
 
     #[test]
     fn heading_paragraph_orderedlist() {
