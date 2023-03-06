@@ -36,17 +36,13 @@ impl HtmlGenerator {
                 let mut heading_level = 1 as usize;
 
                 let mut i = self.lexer.next_token();
-                while i.token_type != TokenType::EOF {
-                    if i.token_type == TokenType::Letter && i.literal == " " {
-                        break;
-                    }
+                while i.token_type == TokenType::Heading {
                     heading_level += 1;
                     i = self.lexer.next_token();
                 };
                 
                 let mut str_vec: Vec<String> = vec![format!("<h{}>", heading_level)];
 
-                i = self.lexer.next_token();
                 while i.token_type != TokenType::EOF {
                     if i.token_type == TokenType::EOF || i.token_type == TokenType::LineBreak {
                         break;
@@ -62,6 +58,7 @@ impl HtmlGenerator {
                 let mut i = token;
                 while i.token_type != TokenType::EOF {
                     let peek_token = self.lexer.peek_next_token();
+                    // println!("{}", peek_token.token_type);
 
                     if i.token_type == TokenType::LineBreak 
                         && 
