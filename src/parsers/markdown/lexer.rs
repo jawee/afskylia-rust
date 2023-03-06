@@ -56,7 +56,10 @@ impl Lexer {
         let tok = match self.ch {
             Some('#') => {
                 if self.prev.is_none() || self.prev.unwrap() == '\n' || self.prev.unwrap() == '#' {
-                    // self.read_char(); //skip the whitespace
+                    //TODO: make an internal peek next char method
+                    if self.peek_next_token().token_type != TokenType::Heading {
+                        self.read_char(); //skip the whitespace
+                    }
                     return Token::new(TokenType::Heading, String::from(""));
                 }
                 return Token::new(TokenType::Letter, String::from("#"));
@@ -103,7 +106,7 @@ mod tests {
                      Lo\n\
                      1. A\n\
                      2. B";
-        let expected = vec![TokenType::Heading, TokenType::Letter,
+        let expected = vec![TokenType::Heading, 
         TokenType::Letter, TokenType::Letter, TokenType::LineBreak,
         TokenType::Letter, TokenType::Letter, TokenType::LineBreak,
         TokenType::OrderedItem, TokenType::Letter, TokenType::LineBreak,
@@ -243,7 +246,7 @@ mod tests {
                      text\n\
                      ";
 
-        let expected = vec![TokenType::Heading, TokenType::Letter,
+        let expected = vec![TokenType::Heading, 
         TokenType::Letter, TokenType::Letter, TokenType::LineBreak,
         TokenType::Letter, TokenType::Letter, TokenType::Letter,
         TokenType::Letter, TokenType::LineBreak, TokenType::EOF];
@@ -259,7 +262,7 @@ mod tests {
     #[test]
     fn next_token_heading_with_text() {
         let input = "# He";
-        let expected = vec![TokenType::Heading, TokenType::Letter,
+        let expected = vec![TokenType::Heading, 
         TokenType::Letter, TokenType::Letter, TokenType::EOF];
         let mut lexer = Lexer::new(&input).unwrap();
 
