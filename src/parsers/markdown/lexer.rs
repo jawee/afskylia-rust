@@ -64,6 +64,7 @@ impl Lexer {
             Some(_) => {
                 if self.ch.unwrap().is_digit(10) && (self.prev.is_none() || self.prev.unwrap() == '\n') {
                     self.read_char(); //to skip the dot. Which means we can only do 1-9 
+                    self.read_char(); //skip the whitespace
                     Token::new(TokenType::OrderedItem, String::from(""))
                 } else {
                     Token::new(TokenType::Letter, String::from(self.ch.unwrap()))
@@ -90,6 +91,23 @@ mod tests {
 
     use super::Lexer;
     use claim::{assert_ok, assert_err, assert_matches};
+
+    #[test]
+    fn paragraph_followed_by_ordereditem() {
+        let input = "Lo\n\
+                     1. A";
+        let expected = vec![TokenType::Letter, TokenType::Letter,
+        TokenType::LineBreak, TokenType::OrderedItem, 
+        TokenType::Letter, TokenType::EOF];
+
+        let mut lexer = Lexer::new(&input).unwrap();
+
+        for e in expected {
+            println!("expected: {}", e);
+            let tok = lexer.next_token();
+            assert_eq!(tok.token_type, e);
+        }
+    }
 
     #[test]
     fn peek_next_token() {
@@ -146,9 +164,8 @@ mod tests {
                      2. B\n\
                      ";
         let expected = vec![TokenType::OrderedItem, TokenType::Letter,
-        TokenType::Letter, TokenType::LineBreak, TokenType::OrderedItem,
-        TokenType::Letter, TokenType::Letter, TokenType::LineBreak,
-        TokenType::EOF];
+        TokenType::LineBreak, TokenType::OrderedItem, TokenType::Letter,
+        TokenType::LineBreak, TokenType::EOF];
 
         let mut lexer = Lexer::new(&input).unwrap();
 
@@ -164,8 +181,8 @@ mod tests {
         let input = "1. A\n\
                      2. B";
         let expected = vec![TokenType::OrderedItem, TokenType::Letter,
-        TokenType::Letter, TokenType::LineBreak, TokenType::OrderedItem,
-        TokenType::Letter, TokenType::Letter, TokenType::EOF];
+        TokenType::LineBreak, TokenType::OrderedItem, TokenType::Letter,
+        TokenType::EOF];
 
         let mut lexer = Lexer::new(&input).unwrap();
 
@@ -183,9 +200,8 @@ mod tests {
                      2. b\n\
                      ";
         let expected = vec![TokenType::LineBreak, TokenType::OrderedItem,
-        TokenType::Letter, TokenType::Letter, TokenType::LineBreak,
-        TokenType::OrderedItem, TokenType::Letter, TokenType::Letter,
-        TokenType::LineBreak, TokenType::EOF];
+        TokenType::Letter, TokenType::LineBreak, TokenType::OrderedItem,
+        TokenType::Letter, TokenType::LineBreak, TokenType::EOF];
         let mut lexer = Lexer::new(&input).unwrap();
 
         for e in expected {
