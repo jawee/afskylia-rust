@@ -38,7 +38,6 @@ impl Lexer {
             Some('\n') => Token::new(TokenType::LineBreak, String::from("")),
             Some(_) => {
                 let prev = self.input.chars().nth(self.read_position-1);
-                println!("{:?} {:?}", next_ch, prev);
                 if next_ch.unwrap().is_digit(10) && (prev.is_none() || prev.unwrap() == '\n') {
                     Token::new(TokenType::OrderedItem, String::from(""))
                 } else {
@@ -57,7 +56,6 @@ impl Lexer {
         let tok = match self.ch {
             Some('#') => {
                 if self.prev.is_none() || self.prev.unwrap() == '\n' || self.prev.unwrap() == '#' {
-                    //TODO: make an internal peek next char method
                     if self.peek_next_token().token_type != TokenType::Heading {
                         self.read_char(); //skip the whitespace
                     }
@@ -107,7 +105,8 @@ mod tests {
         let mut lexer = Lexer::new(&input).unwrap();
 
         for (i, e) in expected.iter().enumerate() {
-            let _tok = lexer.next_token();
+            let tok = lexer.next_token();
+            assert_eq!(tok.token_type, *e);
             if i+1 < expected.len() {
                 assert_eq!(lexer.peek_next_token().token_type, expected[i+1]);
             }
