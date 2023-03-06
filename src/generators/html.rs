@@ -116,15 +116,10 @@ mod tests {
     #[test]
     fn get_heading_with_paragraph_and_ordered_list() {
         let input = "# He\n\
-                     Lo\n\
+                     Lorem ipsum\n\
                      1. A\n\
                      2. B";
-        let expected = "<h1>He</h1><p>Lo</p><ol><li>A</li><li>B</li></ol>";
-        // let input = "# He\n\
-        //              Lorem ipsum\n\
-        //              1. A\n\
-        //              2. B";
-        // let expected = "<h1>He</h1><p>Lorem ipsum</p><ol><li>A</li><li>B</li></ol>";
+        let expected = "<h1>He</h1><p>Lorem ipsum</p><ol><li>A</li><li>B</li></ol>";
 
         let lexer = Lexer::new(input).unwrap();
         let mut html_generator = HtmlGenerator::new(lexer);
