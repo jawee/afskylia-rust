@@ -71,9 +71,6 @@ impl Lexer {
                     self.read_char(); //skip the whitespace
                     Token::new(TokenType::OrderedItem, String::from(""))
                 } else {
-                    if !self.prev.is_none() {
-                        println!("{}, {}", self.prev.unwrap(), self.ch.unwrap());
-                    }
                     Token::new(TokenType::Letter, String::from(self.ch.unwrap()))
                 }
             },
