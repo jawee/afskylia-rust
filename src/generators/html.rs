@@ -68,6 +68,8 @@ impl HtmlGenerator {
                         (peek_token.token_type == TokenType::LineBreak 
                          || 
                          peek_token.token_type == TokenType::EOF
+                         || 
+                         peek_token.token_type == TokenType::OrderedItem
                         ) {
                         self.lexer.next_token();
                         println!("breaking");
@@ -82,12 +84,13 @@ impl HtmlGenerator {
             TokenType::EOF => String::from(""),
             TokenType::OrderedItem => {
                 let mut str_vec: Vec<String> = vec![format!("<ol><li>")];
-                self.lexer.next_token();
                 let mut i = self.lexer.next_token();
-                while i.token_type != TokenType::EOF && !(i.token_type == TokenType::LineBreak && self.lexer.peek_next_token().token_type == TokenType::LineBreak){
+                while i.token_type != TokenType::EOF 
+                    && 
+                    !(i.token_type == TokenType::LineBreak 
+                      && self.lexer.peek_next_token().token_type == TokenType::LineBreak){
                     if i.token_type == TokenType::LineBreak {
                         str_vec.push(String::from("</li><li>"));
-                        self.lexer.next_token();
                         self.lexer.next_token();
                         i = self.lexer.next_token();
                         continue;
