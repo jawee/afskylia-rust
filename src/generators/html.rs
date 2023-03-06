@@ -81,13 +81,21 @@ impl HtmlGenerator {
             },
             TokenType::EOF => String::from(""),
             TokenType::OrderedItem => {
-                let mut str_vec: Vec<String> = vec![format!("<li>")];
-                let mut i = token;
-                while i.token_type != TokenType::EOF && i.token_type != TokenType::LineBreak {
+                let mut str_vec: Vec<String> = vec![format!("<ol><li>")];
+                self.lexer.next_token();
+                let mut i = self.lexer.next_token();
+                while i.token_type != TokenType::EOF && !(i.token_type == TokenType::LineBreak && self.lexer.peek_next_token().token_type == TokenType::LineBreak){
+                    if i.token_type == TokenType::LineBreak {
+                        str_vec.push(String::from("</li><li>"));
+                        self.lexer.next_token();
+                        self.lexer.next_token();
+                        i = self.lexer.next_token();
+                        continue;
+                    }
                     str_vec.push(i.literal);
                     i = self.lexer.next_token();
                 };
-                str_vec.push(format!("</li>"));
+                str_vec.push(format!("</li></ol>"));
                 str_vec.join("")
             },
             _ => {
