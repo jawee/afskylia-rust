@@ -56,6 +56,7 @@ impl Lexer {
         let tok = match self.ch {
             Some('#') => {
                 if self.prev.is_none() || self.prev.unwrap() == '\n' || self.prev.unwrap() == '#' {
+                    // self.read_char(); //skip the whitespace
                     return Token::new(TokenType::Heading, String::from(""));
                 }
                 return Token::new(TokenType::Letter, String::from("#"));
@@ -67,6 +68,9 @@ impl Lexer {
                     self.read_char(); //skip the whitespace
                     Token::new(TokenType::OrderedItem, String::from(""))
                 } else {
+                    if !self.prev.is_none() {
+                        println!("{}, {}", self.prev.unwrap(), self.ch.unwrap());
+                    }
                     Token::new(TokenType::Letter, String::from(self.ch.unwrap()))
                 }
             },
@@ -91,6 +95,28 @@ mod tests {
 
     use super::Lexer;
     use claim::{assert_ok, assert_err, assert_matches};
+
+
+    #[test]
+    fn heading_paragraph_orderedlist() {
+        let input = "# He\n\
+                     Lo\n\
+                     1. A\n\
+                     2. B";
+        let expected = vec![TokenType::Heading, TokenType::Letter,
+        TokenType::Letter, TokenType::Letter, TokenType::LineBreak,
+        TokenType::Letter, TokenType::Letter, TokenType::LineBreak,
+        TokenType::OrderedItem, TokenType::Letter, TokenType::LineBreak,
+        TokenType::OrderedItem, TokenType::Letter, TokenType::EOF];
+
+        let mut lexer = Lexer::new(&input).unwrap();
+
+        for e in expected {
+            println!("expected: {}", e);
+            let tok = lexer.next_token();
+            assert_eq!(tok.token_type, e);
+        }
+    }
 
     #[test]
     fn paragraph_followed_by_ordereditem() {
