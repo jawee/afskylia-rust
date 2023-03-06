@@ -38,9 +38,8 @@ impl Lexer {
             Some('\n') => Token::new(TokenType::LineBreak, String::from("")),
             Some(_) => {
                 let prev = self.input.chars().nth(self.read_position-1);
-                if self.ch.unwrap().is_digit(10) && (prev.is_none() || prev.unwrap() == '\n') {
-                    self.read_char(); //to skip the dot. Which means we can only do 1-9 
-                    self.read_char(); //skip the whitespace
+                println!("{:?} {:?}", next_ch, prev);
+                if next_ch.unwrap().is_digit(10) && (prev.is_none() || prev.unwrap() == '\n') {
                     Token::new(TokenType::OrderedItem, String::from(""))
                 } else {
                     Token::new(TokenType::Letter, String::from(self.ch.unwrap()))
@@ -99,7 +98,7 @@ mod tests {
     use claim::{assert_ok, assert_err, assert_matches};
 
     #[test]
-    fn peek_next_token_paragraph_orderdlist() {
+    fn peek_next_token_paragraph_orderedlist() {
         let input = "L\n\
                      1. A";
 
@@ -116,7 +115,7 @@ mod tests {
     }
 
     #[test]
-    fn peek_next_token_two_linebreaks_orderdlist() {
+    fn peek_next_token_two_linebreaks_orderedlist() {
         let input = "\n\
                      \n\
                      1. A";
@@ -130,7 +129,7 @@ mod tests {
     }
 
     #[test]
-    fn peek_next_token_one_linebreaks_orderdlist() {
+    fn peek_next_token_one_linebreak_orderedlist() {
         let input = "\n\
                      1. A";
 
