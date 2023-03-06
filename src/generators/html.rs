@@ -54,8 +54,8 @@ impl HtmlGenerator {
                 str_vec.join("")
             },
             TokenType::Letter => {
-                let mut str_vec: Vec<String> = vec![format!("<p>")];
-                let mut i = token;
+                let mut str_vec: Vec<String> = vec![format!("<p>{}", token.literal)];
+                let mut i = self.lexer.next_token();
                 while i.token_type != TokenType::EOF {
                     let peek_token = self.lexer.peek_next_token();
                     println!("{:?} => {:?}", i, peek_token);
@@ -68,7 +68,6 @@ impl HtmlGenerator {
                          || 
                          peek_token.token_type == TokenType::OrderedItem
                         ) {
-                        self.lexer.next_token();
                         println!("breaking");
                         break;
                     }
@@ -98,6 +97,7 @@ impl HtmlGenerator {
                 str_vec.push(format!("</li></ol>"));
                 str_vec.join("")
             },
+            TokenType::LineBreak => String::from(""),
             _ => {
                 println!("{:?}", token);
                 todo!()
