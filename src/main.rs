@@ -1,6 +1,7 @@
 use std::env;
 
 use rhugo::commands::run;
+use rhugo::commands::new;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -15,6 +16,7 @@ fn main() {
         "run" => run(),
         "build" => todo!(),
         "help" => todo!(),
+        "new" => new(&args),
         _ => println!("unknown command")
     }
 }
