@@ -28,12 +28,14 @@ mod tests {
 
     use std::{env::temp_dir, fs::{File, self}, io::Error};
 
+    use uuid::Uuid;
+
     use super::new_site_internal;
 
     #[test]
     fn test_new_site_internal() -> Result<(), Error> {
-        let dir = temp_dir().join("test_tmp_dir2");
-        println!("{}", dir.display());
+        let uuid = Uuid::new_v4().to_string();
+        let dir = temp_dir().join(uuid);
         fs::create_dir(dir.as_path())?;
 
         new_site_internal(dir.as_path());
@@ -43,10 +45,10 @@ mod tests {
 
     #[test]
     fn test_tmp_dir() -> Result<(), Error> {
-        // let uuid = random
-        let dir = temp_dir().join("test_tmp_dir");
-        println!("{}", dir.display());
+        let uuid = Uuid::new_v4().to_string();
+        let dir = temp_dir().join(uuid);
         fs::create_dir(dir.as_path())?;
+
         let file_path = dir.as_path().join("tmpfile.txt");
         let _file = File::create(&file_path)?;
         let dir_path = dir.as_path().join("templates");

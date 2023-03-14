@@ -15,3 +15,4 @@ name = "rhugo"
 
 [dev-dependencies]
 claim = "0.5.0"
+uuid = { version = "1", features = ["v4"] }
