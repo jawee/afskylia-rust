@@ -1,4 +1,4 @@
-use std::{path::Path, env::current_dir};
+use std::{path::Path, env::current_dir, fs, io::Error};
 
 pub fn new(args: &Vec<String>) {
     let command = &args[2];
@@ -12,11 +12,23 @@ pub fn new(args: &Vec<String>) {
 
 fn new_site() {
     let dir = current_dir().unwrap();
-    new_site_internal(dir.as_path());
+    new_site_internal(dir.as_path()).unwrap();
 }
 
-fn new_site_internal(_dir: &Path) {
-    println!("create new site at {}", _dir.display());
+fn new_site_internal(base_dir: &Path) -> Result<(), Error> {
+    println!("create new site at {}", base_dir.display());
+    
+    let dirs = get_site_dirs();
+    for dir in dirs {
+        fs::create_dir(base_dir.join(dir).as_path())?;
+    }
+
+    return Ok(());
+}
+
+fn get_site_dirs() -> Vec<String> {
+    let dirs = vec![String::from("content"), String::from("layouts"), String::from("resources")];
+    return dirs;
 }
 
 fn new_page(_page_name: &str) {
@@ -30,7 +42,7 @@ mod tests {
 
     use uuid::Uuid;
 
-    use super::new_site_internal;
+    use super::{new_site_internal, get_site_dirs};
 
     #[test]
     fn test_new_site_internal() -> Result<(), Error> {
@@ -38,7 +50,13 @@ mod tests {
         let dir = temp_dir().join(uuid);
         fs::create_dir(dir.as_path())?;
 
-        new_site_internal(dir.as_path());
+        new_site_internal(dir.as_path())?;
+
+        for d in get_site_dirs() {
+            let dir_meta = fs::metadata(dir.join(&d))?;
+            assert_eq!(dir_meta.is_dir(), true, "{} is not a directory", d);
+        }
+
         fs::remove_dir_all(dir.as_path())?;
         return Ok(());
     }
