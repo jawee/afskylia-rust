@@ -27,8 +27,8 @@ fn new_site_internal(base_dir: &Path) -> Result<(), Error> {
 }
 
 fn get_site_dirs() -> Vec<String> {
-    let dirs = vec![String::from("content"), String::from("layouts"), String::from("resources")];
-    return dirs;
+    let dirs = vec!["content", "layouts", "resources"];
+    return dirs.iter().map(|s| s.to_string()).collect();
 }
 
 fn new_page(_page_name: &str) {
@@ -68,9 +68,9 @@ mod tests {
         fs::create_dir(dir.as_path())?;
 
         let file_path = dir.as_path().join("tmpfile.txt");
-        let _file = File::create(&file_path)?;
+        File::create(&file_path)?;
         let dir_path = dir.as_path().join("templates");
-        let _newdir = fs::create_dir(&dir_path)?;
+        fs::create_dir(&dir_path)?;
 
         let file_meta = fs::metadata(file_path)?;
         let dir_meta = fs::metadata(dir_path)?;
