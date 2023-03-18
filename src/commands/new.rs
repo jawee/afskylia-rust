@@ -57,6 +57,8 @@ mod tests {
             assert_eq!(dir_meta.is_dir(), true, "{} is not a directory", d);
         }
 
+        assert!(std::panic::catch_unwind(|| {}).is_ok());
+
         fs::remove_dir_all(dir.as_path())?;
         return Ok(());
     }
