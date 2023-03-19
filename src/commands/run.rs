@@ -32,14 +32,17 @@ fn handle_connection(mut stream: TcpStream) {
             char_vec.push(c);
         }
     }
-    // let path = String::from(char_vec);
     let path = char_vec.iter().collect::<String>();
-    println!("{}", path);
 
-    let (status_line, html) = if request_line == "GET / HTTP/1.1" {
-        ("HTTP/1.1 200 OK", HTML)
-    } else {
-        ("HTTP/1.1 404 NOT FOUND", NOT_FOUND)
+    let maybe_html = get_content_for_path(path);
+
+    let (status_line, html) = match maybe_html {
+        None => {
+            ("HTTP/1.1 404 NOT FOUND", NOT_FOUND.to_string())
+        },
+        Some(t) => {
+            ("HTTP/1.1 200 OK", t)
+        }
     };
 
     let length = html.len();
@@ -49,6 +52,14 @@ fn handle_connection(mut stream: TcpStream) {
 
     stream.write_all(response.as_bytes()).unwrap();
 }
+
+fn get_content_for_path(path: String) -> Option<String> {
+    if path == "/" {
+        return Some(HTML.to_string());
+    }
+    return None;
+}
+
 
 const HTML: &str = r#"
 <!DOCTYPE html>
