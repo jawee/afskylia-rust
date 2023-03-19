@@ -17,22 +17,8 @@ fn handle_connection(mut stream: TcpStream) {
     println!("{}", request_line);
 
     // GET /asdf HTTP/1.1
-    let mut found = false;
-    let mut char_vec: Vec<char> = vec![];
-    for c in request_line.chars() {
-        if c == ' ' {
-            if found {
-                break;
-            }
-            found = true;
-            continue;
-        }
-
-        if found {
-            char_vec.push(c);
-        }
-    }
-    let path = char_vec.iter().collect::<String>();
+    let path = get_request_path(&request_line);
+    println!("{}", path);
 
     let maybe_html = get_content_for_path(path);
 
@@ -58,6 +44,32 @@ fn get_content_for_path(path: String) -> Option<String> {
         return Some(HTML.to_string());
     }
     return None;
+}
+
+fn get_request_path(request_line: &str) -> String {
+    let mut found = false;
+    let mut char_vec: Vec<char> = vec![];
+    for c in request_line.chars() {
+        if c == ' ' {
+            if found {
+                break;
+            }
+            found = true;
+            continue;
+        }
+
+        if found {
+            char_vec.push(c);
+        }
+    }
+
+    let path = get_request_path_string(char_vec);
+    return path;
+}
+
+fn get_request_path_string(char_vec: Vec<char>) -> String {
+    let path = char_vec.iter().collect::<String>();
+    return path;
 }
 
 
@@ -86,3 +98,34 @@ const NOT_FOUND: &str = r#"
     <p>Sorry, I don't know what you're asking for.</p>
   </body>
 </html>"#;
+
+
+#[cfg(test)]
+mod tests {
+    use std::io::Error;
+
+    use super::{get_request_path, get_request_path_string};
+
+
+    #[test]
+    fn test_get_request_path() {
+        let request_line = "GET /path/to/file.html HTTP/1.1";
+
+        let path = get_request_path(request_line);
+
+        assert_eq!(path, "/path/to/file.html".to_string());
+    }
+
+    #[test]
+    fn test_get_request_path_string() -> Result<(), Error> {
+        let path_str = "/path/to/file.html";
+        let char_vec = path_str.chars().collect();
+
+        let path = get_request_path_string(char_vec);
+
+        assert_eq!(path_str, path);
+
+        return Ok(());
+    }
+
+}
