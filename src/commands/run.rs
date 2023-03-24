@@ -18,11 +18,8 @@ fn handle_connection(mut stream: TcpStream) {
 
     // GET /asdf HTTP/1.1
     let path = get_request_path(&request_line);
-    println!("{}", path);
 
-    let maybe_html = get_content_for_path(path);
-
-    let (status_line, html) = match maybe_html {
+    let (status_line, html) = match get_content_for_path(path) {
         None => {
             ("HTTP/1.1 404 NOT FOUND", NOT_FOUND.to_string())
         },
@@ -106,7 +103,6 @@ mod tests {
 
     use super::{get_request_path, get_request_path_string};
 
-
     #[test]
     fn test_get_request_path() {
         let request_line = "GET /path/to/file.html HTTP/1.1";
@@ -127,5 +123,4 @@ mod tests {
 
         return Ok(());
     }
-
 }
