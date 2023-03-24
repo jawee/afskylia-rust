@@ -21,7 +21,7 @@ fn handle_connection(mut stream: TcpStream) {
 
     let (status_line, html) = match get_content_for_path(path) {
         None => {
-            ("HTTP/1.1 404 NOT FOUND", NOT_FOUND.to_string())
+            ("HTTP/1.1 404 NOT FOUND", get_not_found_content())
         },
         Some(t) => {
             ("HTTP/1.1 200 OK", t)
@@ -34,6 +34,10 @@ fn handle_connection(mut stream: TcpStream) {
         format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{html}");
 
     stream.write_all(response.as_bytes()).unwrap();
+}
+
+fn get_not_found_content() -> String {
+    return NOT_FOUND.to_string();
 }
 
 fn get_content_for_path(path: String) -> Option<String> {
