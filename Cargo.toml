@@ -1,5 +1,5 @@
 [package]
-name = "rhugo"
+name = "afskylia"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,9 +8,9 @@ path = "src/lib.rs"
 
 [[bin]]
 path = "src/main.rs"
-name = "rhugo"
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+name = "afskylia"
 
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 
 [dev-dependencies]

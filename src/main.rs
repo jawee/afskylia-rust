@@ -1,7 +1,7 @@
 use std::env;
 
-use rhugo::commands::run;
-use rhugo::commands::new;
+use afskylia::commands::run;
+use afskylia::commands::new;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
