@@ -1,16 +1,16 @@
 use std::{collections::HashMap, net::{TcpListener, TcpStream}, io::{BufReader, BufRead, Write}};
 
-pub fn start(hash_map: HashMap<String, String>) {
+pub fn start(content_map: HashMap<String, String>) {
     let listener = TcpListener::bind("127.0.0.1:1313").unwrap();
 
     for stream in listener.incoming() {
         let stream = stream.unwrap();
 
-        handle_connection(stream, hash_map.clone());
+        handle_connection(stream, content_map.clone());
     }
 }
 
-fn handle_connection(mut stream: TcpStream, hash_map: HashMap<String, String>) {
+fn handle_connection(mut stream: TcpStream, content_map: HashMap<String, String>) {
     let buf_reader = BufReader::new(&mut stream);
     let request_line = buf_reader.lines().next().unwrap().unwrap();
 
@@ -19,7 +19,7 @@ fn handle_connection(mut stream: TcpStream, hash_map: HashMap<String, String>) {
     // GET /asdf HTTP/1.1
     let path = get_request_path(&request_line);
 
-    let (status_line, html) = match get_content_for_path(path, hash_map) {
+    let (status_line, html) = match get_content_for_path(path, content_map) {
         None => {
             ("HTTP/1.1 404 NOT FOUND", get_not_found_content())
         },
@@ -40,12 +40,12 @@ fn get_not_found_content() -> String {
     return NOT_FOUND.to_string();
 }
 
-fn get_content_for_path(path: String, hash_map: HashMap<String, String>) -> Option<String> {
-    let maybe_content = hash_map.get(&path).cloned();
+fn get_content_for_path(path: String, content_map: HashMap<String, String>) -> Option<String> {
+    let maybe_content = content_map.get(&path).cloned();
 
     let maybe_content = match maybe_content {
         Some(_) => maybe_content,
-        None => get_content_for_path("404".to_string(), hash_map)
+        None => get_content_for_path("404".to_string(), content_map)
     };
 
     let content = match maybe_content {
