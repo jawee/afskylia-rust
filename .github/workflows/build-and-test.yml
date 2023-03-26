@@ -1,0 +1,32 @@
+name: 'Build and test'
+
+on: 
+  workflow_dispatch:
+    push:
+      branches: 
+      - master
+    pull_requests:
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: rustup update stable && rustup default stable
+      - run: rustup component add rustfmt
+      - run: cargo fmt --all --check
+      - run: cargo build
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: rustup update stable && rustup default stable
+      - run: cargo test
+
+
+
+        
+
+
