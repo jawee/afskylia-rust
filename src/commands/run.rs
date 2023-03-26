@@ -1,16 +1,22 @@
-use std::{net::{TcpListener, TcpStream}, io::{BufRead, BufReader, Write}};
+use std::{net::{TcpListener, TcpStream}, io::{BufRead, BufReader, Write}, collections::HashMap};
 
 pub fn run() {
+
+    let mut hash_map: HashMap<String, String> = HashMap::new();
+
+    hash_map.insert(String::from("/"), HTML.to_string());
+    hash_map.insert(String::from("/style.css"), CSS.to_string());
+    hash_map.insert(String::from("404"), NOT_FOUND.to_string());
     let listener = TcpListener::bind("127.0.0.1:1313").unwrap();
 
     for stream in listener.incoming() {
         let stream = stream.unwrap();
 
-        handle_connection(stream);
+        handle_connection(stream, hash_map.clone());
     }
 }
 
-fn handle_connection(mut stream: TcpStream) {
+fn handle_connection(mut stream: TcpStream, hash_map: HashMap<String, String>) {
     let buf_reader = BufReader::new(&mut stream);
     let request_line = buf_reader.lines().next().unwrap().unwrap();
 
@@ -19,7 +25,7 @@ fn handle_connection(mut stream: TcpStream) {
     // GET /asdf HTTP/1.1
     let path = get_request_path(&request_line);
 
-    let (status_line, html) = match get_content_for_path(path) {
+    let (status_line, html) = match get_content_for_path(path, hash_map) {
         None => {
             ("HTTP/1.1 404 NOT FOUND", get_not_found_content())
         },
@@ -40,11 +46,10 @@ fn get_not_found_content() -> String {
     return NOT_FOUND.to_string();
 }
 
-fn get_content_for_path(path: String) -> Option<String> {
-    if path == "/" {
-        return Some(HTML.to_string());
-    }
-    return None;
+fn get_content_for_path(path: String, hash_map: HashMap<String, String>) -> Option<String> {
+    let maybe_content = hash_map.get(&path);
+    
+    return maybe_content.cloned();
 }
 
 fn get_request_path(request_line: &str) -> String {
@@ -73,6 +78,12 @@ fn get_request_path_string(char_vec: Vec<char>) -> String {
     return path;
 }
 
+const CSS: &str = r#"
+body {
+    background-color: #ccc;
+}
+"#;
+
 
 const HTML: &str = r#"
 <!DOCTYPE html>
@@ -80,6 +91,7 @@ const HTML: &str = r#"
   <head>
     <meta charset="utf-8">
     <title>Hello!</title>
+    <link rel="stylesheet" href="style.css">
   </head>
   <body>
     <h1>Hello!</h1>
