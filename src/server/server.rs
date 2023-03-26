@@ -19,9 +19,9 @@ fn handle_connection(mut stream: TcpStream, content_map: HashMap<String, String>
     // GET /asdf HTTP/1.1
     let path = get_request_path(&request_line);
 
-    let (status_line, html) = match get_content_for_path(path, content_map) {
+    let (status_line, html) = match get_content_for_path(path, content_map.clone()) {
         None => {
-            ("HTTP/1.1 404 NOT FOUND", get_not_found_content())
+            ("HTTP/1.1 404 NOT FOUND", get_not_found_content(content_map))
         },
         Some(t) => {
             ("HTTP/1.1 200 OK", t)
@@ -36,24 +36,18 @@ fn handle_connection(mut stream: TcpStream, content_map: HashMap<String, String>
     stream.write_all(response.as_bytes()).unwrap();
 }
 
-fn get_not_found_content() -> String {
-    return NOT_FOUND.to_string();
+fn get_not_found_content(content_map: HashMap<String, String>) -> String {
+    let content = match content_map.get("404") {
+        Some(t) => t,
+        None => NOT_FOUND 
+    };
+    
+    return content.to_string();
 }
 
 fn get_content_for_path(path: String, content_map: HashMap<String, String>) -> Option<String> {
     let maybe_content = content_map.get(&path).cloned();
-
-    let maybe_content = match maybe_content {
-        Some(_) => maybe_content,
-        None => get_content_for_path("404".to_string(), content_map)
-    };
-
-    let content = match maybe_content {
-        Some(t) => t,
-        None => NOT_FOUND.to_string()
-    };
-    
-    return Some(content);
+    return maybe_content;
 }
 
 fn get_request_path(request_line: &str) -> String {
@@ -100,7 +94,7 @@ mod tests {
 
     use std::{collections::HashMap, io::Error};
 
-    use crate::server::server::NOT_FOUND;
+    use crate::server::server::{NOT_FOUND, get_not_found_content};
 
     use super::{get_request_path, get_request_path_string, get_content_for_path};
 
@@ -115,22 +109,30 @@ mod tests {
     }
 
     #[test]
-    fn test_get_content_for_path_custom_not_found() {
-        let path = "/".to_string();
+    fn test_get_content_for_path_not_found_none() {
+        let path = "/asdf".to_string();
         let mut content_map: HashMap<String, String> = HashMap::new();
-        content_map.insert("404".to_string(), "content".to_string());
+        content_map.insert("/".to_string(), "content".to_string());
         let content = get_content_for_path(path, content_map);
 
-        assert_eq!(content, Some("content".to_string()));
+        assert_eq!(content, None);
+    }
+    
+    #[test]
+    fn test_get_not_found_custom_not_found() {
+        let mut content_map: HashMap<String, String> = HashMap::new();
+        content_map.insert("404".to_string(), "content".to_string());
+        let content = get_not_found_content(content_map);
+
+        assert_eq!(content, "content".to_string());
     }
 
     #[test]
     fn test_get_content_for_path_default_not_found() {
-        let path = "/".to_string();
         let content_map: HashMap<String, String> = HashMap::new();
-        let content = get_content_for_path(path, content_map);
+        let content = get_not_found_content(content_map);
 
-        assert_eq!(content, Some(NOT_FOUND.to_string()));
+        assert_eq!(content, NOT_FOUND.to_string());
     }
 
     #[test]
