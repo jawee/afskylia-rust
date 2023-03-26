@@ -1,1 +1,1 @@
-export PATH="$PATH:$HOME/projects/rhugo/target/debug"
+export PATH="$PATH:$HOME/projects/afskylia/master/target/debug"
