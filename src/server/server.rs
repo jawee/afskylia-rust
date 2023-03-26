@@ -97,9 +97,41 @@ const NOT_FOUND: &str = r#"
 
 #[cfg(test)]
 mod tests {
-    use std::io::Error;
 
-    use super::{get_request_path, get_request_path_string};
+    use std::{collections::HashMap, io::Error};
+
+    use crate::server::server::NOT_FOUND;
+
+    use super::{get_request_path, get_request_path_string, get_content_for_path};
+
+    #[test]
+    fn test_get_content_for_path() {
+        let path = "/".to_string();
+        let mut content_map: HashMap<String, String> = HashMap::new();
+        content_map.insert("/".to_string(), "content".to_string());
+        let content = get_content_for_path(path, content_map);
+
+        assert_eq!(content, Some("content".to_string()));
+    }
+
+    #[test]
+    fn test_get_content_for_path_custom_not_found() {
+        let path = "/".to_string();
+        let mut content_map: HashMap<String, String> = HashMap::new();
+        content_map.insert("404".to_string(), "content".to_string());
+        let content = get_content_for_path(path, content_map);
+
+        assert_eq!(content, Some("content".to_string()));
+    }
+
+    #[test]
+    fn test_get_content_for_path_default_not_found() {
+        let path = "/".to_string();
+        let content_map: HashMap<String, String> = HashMap::new();
+        let content = get_content_for_path(path, content_map);
+
+        assert_eq!(content, Some(NOT_FOUND.to_string()));
+    }
 
     #[test]
     fn test_get_request_path() {
