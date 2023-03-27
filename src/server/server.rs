@@ -18,7 +18,7 @@ fn handle_connection(mut stream: TcpStream, content_map: HashMap<String, Vec<u8>
 
     let path = get_request_path(&request_line);
 
-    let (status_line, html) = match get_content_for_path(path, content_map.clone()) {
+    let (status_line, content) = match get_content_for_path(path.clone(), content_map.clone()) {
         None => {
             ("HTTP/1.1 404 NOT FOUND", get_not_found_content(&content_map))
         },
@@ -27,13 +27,20 @@ fn handle_connection(mut stream: TcpStream, content_map: HashMap<String, Vec<u8>
         }
     };
 
-    let length = html.len();
+    let content_length = content.len();
+
+    let mut content_type = "text/html";
+    if path.ends_with(".png") {
+        content_type = "image/png";
+    } else if path.ends_with(".css") {
+        content_type = "text/css";
+    }
 
     let response = 
-        format!("{status_line}\r\nContent-Length: {length}\r\n\r\n");
+        format!("{status_line}\r\ncontent-length: {content_length}\r\ncontent-type: {content_type}\r\n\r\n");
 
     let mut respvec = Vec::from(response.as_bytes());
-    respvec.append(&mut Vec::from(html));
+    respvec.append(&mut Vec::from(content));
 
     stream.write_all(&respvec).unwrap();
 }
