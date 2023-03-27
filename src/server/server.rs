@@ -16,7 +16,6 @@ fn handle_connection(mut stream: TcpStream, content_map: HashMap<String, Vec<u8>
 
     println!("{}", request_line);
 
-    // GET /asdf HTTP/1.1
     let path = get_request_path(&request_line);
 
     let (status_line, html) = match get_content_for_path(path, content_map.clone()) {
