@@ -34,6 +34,8 @@ fn handle_connection(mut stream: TcpStream, content_map: HashMap<String, Vec<u8>
         content_type = "image/png";
     } else if path.ends_with(".css") {
         content_type = "text/css";
+    } else if path.ends_with(".jpg") || path.ends_with(".jpeg") {
+        content_type = "image/jpeg";
     }
 
     let response = 
