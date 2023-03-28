@@ -1,1 +1,1 @@
-export PATH="$PATH:$HOME/projects/afskylia/master/target/debug"
+export PATH="$PATH:$PWD/target/debug"
