@@ -13,11 +13,10 @@ pub fn start(content_map: &HashMap<String, Vec<u8>>) {
 fn handle_connection_2(mut stream: TcpStream, content_map: HashMap<String, Vec<u8>>) {
     let buf_reader = BufReader::new(&mut stream);
     let request_line = buf_reader.lines().next().unwrap().unwrap();
-    handle_connection(Box::new(stream), request_line, content_map.clone());
+    handle_connection(stream, request_line, content_map.clone());
 }
 
-// fn handle_connection(mut stream: TcpStream, request_line: String,  content_map: HashMap<String, Vec<u8>>) {
-fn handle_connection(mut stream: Box<dyn Write>, request_line: String, content_map: HashMap<String, Vec<u8>>) {
+fn handle_connection(mut stream: impl Write, request_line: String, content_map: HashMap<String, Vec<u8>>) {
     let path = get_request_path(&request_line);
 
     let (status_line, content) = match get_content_for_path(path.clone(), content_map.clone()) {
@@ -44,7 +43,7 @@ fn handle_connection(mut stream: Box<dyn Write>, request_line: String, content_m
         format!("{status_line}\r\ncontent-length: {content_length}\r\ncontent-type: {content_type}\r\n\r\n");
 
     let mut respvec = Vec::from(response.as_bytes());
-    respvec.append(&mut Vec::from(content));
+    respvec.extend_from_slice(&mut Vec::from(content));
 
     stream.write_all(&respvec).unwrap();
 }
@@ -105,18 +104,60 @@ const NOT_FOUND: &str = r#"
 #[cfg(test)]
 mod tests {
 
-    use std::{collections::HashMap, io::Error, net::{TcpStream, TcpListener}};
+    use std::{collections::HashMap, io::{Error, Write}};
 
     use crate::server::server::{NOT_FOUND, get_not_found_content};
 
     use super::{get_request_path, get_request_path_string, get_content_for_path, handle_connection};
 
-    #[test]
-    fn test_handle_connection() {
-
-        let mut content_map: HashMap<String, Vec<u8>> = HashMap::new();
-        handle_connection(stream, content_map)
+    struct MockWriter {
+        content: Vec<u8>
     }
+    
+    impl MockWriter {
+        pub fn get_content(&self) -> Vec<u8> {
+            return self.content.clone();
+        }
+    }
+
+    impl Write for MockWriter {
+        fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+            self.content.extend_from_slice(buf);
+            return Ok(buf.len());
+        }
+
+        fn flush(&mut self) -> std::io::Result<()> {
+            todo!()
+        }
+    }
+    #[test]
+    fn test_handle_connection() -> Result<(), Error> {
+
+        let status_line = "HTTP/1.1 404 NOT FOUND";
+        let content = NOT_FOUND.to_string().as_bytes().to_vec();
+        let content_length = content.len();
+        let content_type = "text/html";
+        let response = 
+            format!("{status_line}\r\ncontent-length: {content_length}\r\ncontent-type: {content_type}\r\n\r\n");
+        let mut respvec = Vec::from(response.as_bytes());
+        respvec.extend_from_slice(&mut Vec::from(content.clone()));
+
+        let mut respvec = Vec::from(response.as_bytes());
+        respvec.extend_from_slice(&mut Vec::from(content));
+        let mut stream = MockWriter{ content: Vec::new() };
+        let request_line = "".to_string();
+        let content_map: HashMap<String, Vec<u8>> = HashMap::new();
+        handle_connection(&mut stream, request_line, content_map);
+
+        let cont = stream.get_content();
+        let respstr = std::str::from_utf8(&cont).unwrap();
+        println!("{response}");
+        println!("{respstr}");
+
+        assert_eq!(stream.get_content().len(), respvec.len());
+        return Ok(());
+    }
+
     #[test]
     fn test_get_content_for_path() {
         let path = "/".to_string();
