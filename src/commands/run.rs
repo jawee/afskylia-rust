@@ -11,6 +11,7 @@ pub fn run() {
     hash_map.insert(String::from("/style.css"), CSS.to_string().as_bytes().to_vec());
     hash_map.insert(String::from("404"), NOT_FOUND.to_string().as_bytes().to_vec());
     hash_map.insert(String::from("/1x1.png"), image_byte_vec.as_slice().to_vec());
+    hash_map.insert(String::from("/script.js"), JS.to_string().as_bytes().to_vec());
 
     server::start(&hash_map);
 }
@@ -23,6 +24,9 @@ body {
 }
 "#;
 
+const JS: &str = r#"
+    console.log("hello");
+"#;
 
 const HTML: &str = r#"
 <!DOCTYPE html>
@@ -35,6 +39,7 @@ const HTML: &str = r#"
   <body>
     <h1>Hello!</h1>
     <p>Hi from Rust</p>
+    <script src="script.js"></script>
   </body>
 </html>"#;
 
