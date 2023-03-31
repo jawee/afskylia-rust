@@ -130,19 +130,22 @@ mod tests {
             todo!()
         }
     }
-    #[test]
-    fn test_handle_connection() -> Result<(), Error> {
-        let status_line = "HTTP/1.1 404 NOT FOUND";
-        let content = NOT_FOUND.to_string().as_bytes().to_vec();
+    fn get_respvec(status_line: &str, content: &str, content_type: &str) -> Vec<u8> {
         let content_length = content.len();
-        let content_type = "text/html";
         let response = 
             format!("{status_line}\r\ncontent-length: {content_length}\r\ncontent-type: {content_type}\r\n\r\n");
         let mut respvec = Vec::from(response.as_bytes());
-        respvec.extend_from_slice(&mut Vec::from(content.clone()));
-
-        let mut respvec = Vec::from(response.as_bytes());
         respvec.extend_from_slice(&mut Vec::from(content));
+        return respvec;
+    }
+
+    #[test]
+    fn test_handle_connection() -> Result<(), Error> {
+        let status_line = "HTTP/1.1 404 NOT FOUND";
+        let content = NOT_FOUND;
+        let content_type = "text/html";
+        let respvec = get_respvec(status_line, content, content_type);
+
         let mut stream = MockWriter{ content: Vec::new() };
         let request_line = "".to_string();
         let content_map: HashMap<String, Vec<u8>> = HashMap::new();
