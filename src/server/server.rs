@@ -17,6 +17,7 @@ fn handle_connection_2(mut stream: TcpStream, content_map: HashMap<String, Vec<u
 }
 
 fn handle_connection(mut stream: impl Write, request_line: String, content_map: HashMap<String, Vec<u8>>) {
+    println!("{request_line}");
     let path = get_request_path(&request_line);
 
     let (status_line, content) = match get_content_for_path(path.clone(), content_map.clone()) {
@@ -37,6 +38,8 @@ fn handle_connection(mut stream: impl Write, request_line: String, content_map: 
         content_type = "text/css";
     } else if path.ends_with(".jpg") || path.ends_with(".jpeg") {
         content_type = "image/jpeg";
+    } else if path.ends_with(".js") {
+        content_type = "text/javascript";
     }
 
     let response = 
@@ -137,6 +140,27 @@ mod tests {
         let mut respvec = Vec::from(response.as_bytes());
         respvec.extend_from_slice(&mut Vec::from(content));
         return respvec;
+    }
+
+    #[test]
+    fn test_handle_connection_get_javascript() -> Result<(), Error> {
+        let status_line = "HTTP/1.1 200 OK";
+        let content = r#"console.log(hello)"#;
+        let content_type = "text/javascript";
+        let respvec = get_respvec(status_line, content, content_type);
+
+        let mut stream = MockWriter{ content: Vec::new() };
+        let request_line = "GET /script.js HTTP/1.1".to_string();
+        let mut content_map: HashMap<String, Vec<u8>> = HashMap::new();
+        content_map.insert("/script.js".to_string(), content.to_string().as_bytes().to_vec());
+        handle_connection(&mut stream, request_line, content_map);
+
+        let content = stream.get_content();
+        let resp_str = std::str::from_utf8(&content);
+        let expected_str = std::str::from_utf8(&respvec);
+        assert_eq!(resp_str, expected_str);
+        assert_eq!(content.len(), respvec.len());
+        return Ok(());
     }
 
     #[test]
