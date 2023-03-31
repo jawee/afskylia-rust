@@ -132,7 +132,6 @@ mod tests {
     }
     #[test]
     fn test_handle_connection() -> Result<(), Error> {
-
         let status_line = "HTTP/1.1 404 NOT FOUND";
         let content = NOT_FOUND.to_string().as_bytes().to_vec();
         let content_length = content.len();
@@ -148,11 +147,6 @@ mod tests {
         let request_line = "".to_string();
         let content_map: HashMap<String, Vec<u8>> = HashMap::new();
         handle_connection(&mut stream, request_line, content_map);
-
-        let cont = stream.get_content();
-        let respstr = std::str::from_utf8(&cont).unwrap();
-        println!("{response}");
-        println!("{respstr}");
 
         assert_eq!(stream.get_content().len(), respvec.len());
         return Ok(());
