@@ -6,21 +6,21 @@ pub fn start(content_map: &HashMap<String, Vec<u8>>) {
     for stream in listener.incoming() {
         let stream = stream.unwrap();
 
-        handle_connection_2(stream, content_map.clone());
+        handle_stream(stream, &content_map);
     }
 }
 
-fn handle_connection_2(mut stream: TcpStream, content_map: HashMap<String, Vec<u8>>) {
+fn handle_stream(mut stream: TcpStream, content_map: &HashMap<String, Vec<u8>>) {
     let buf_reader = BufReader::new(&mut stream);
     let request_line = buf_reader.lines().next().unwrap().unwrap();
-    handle_connection(stream, request_line, content_map.clone());
+    handle_connection(stream, request_line, &content_map);
 }
 
-fn handle_connection(mut stream: impl Write, request_line: String, content_map: HashMap<String, Vec<u8>>) {
+fn handle_connection(mut stream: impl Write, request_line: String, content_map: &HashMap<String, Vec<u8>>) {
     println!("{request_line}");
     let path = get_request_path(&request_line);
 
-    let (status_line, content) = match get_content_for_path(path.clone(), content_map.clone()) {
+    let (status_line, content) = match get_content_for_path(path.clone(), &content_map.clone()) {
         None => {
             ("HTTP/1.1 404 NOT FOUND", get_not_found_content(&content_map))
         },
@@ -60,7 +60,7 @@ fn get_not_found_content(content_map: &HashMap<String, Vec<u8>>) -> Vec<u8> {
     return content.to_vec();
 }
 
-fn get_content_for_path(path: String, content_map: HashMap<String, Vec<u8>>) -> Option<Vec<u8>> {
+fn get_content_for_path(path: String, content_map: &HashMap<String, Vec<u8>>) -> Option<Vec<u8>> {
     let maybe_content = content_map.get(&path).cloned();
     return maybe_content;
 }
@@ -153,7 +153,7 @@ mod tests {
         let request_line = "GET /script.js HTTP/1.1".to_string();
         let mut content_map: HashMap<String, Vec<u8>> = HashMap::new();
         content_map.insert("/script.js".to_string(), content.to_string().as_bytes().to_vec());
-        handle_connection(&mut stream, request_line, content_map);
+        handle_connection(&mut stream, request_line, &content_map);
 
         let content = stream.get_content();
         let resp_str = std::str::from_utf8(&content);
@@ -173,7 +173,7 @@ mod tests {
         let mut stream = MockWriter{ content: Vec::new() };
         let request_line = "".to_string();
         let content_map: HashMap<String, Vec<u8>> = HashMap::new();
-        handle_connection(&mut stream, request_line, content_map);
+        handle_connection(&mut stream, request_line, &content_map);
 
         assert_eq!(stream.get_content().len(), respvec.len());
         return Ok(());
@@ -184,7 +184,7 @@ mod tests {
         let path = "/".to_string();
         let mut content_map: HashMap<String, Vec<u8>> = HashMap::new();
         content_map.insert("/".to_string(), "content".as_bytes().to_vec());
-        let content = get_content_for_path(path, content_map);
+        let content = get_content_for_path(path, &content_map);
 
         assert_eq!(content, Some("content".as_bytes().to_vec()));
     }
@@ -194,7 +194,7 @@ mod tests {
         let path = "/asdf".to_string();
         let mut content_map: HashMap<String, Vec<u8>> = HashMap::new();
         content_map.insert("/".to_string(), "content".as_bytes().to_vec());
-        let content = get_content_for_path(path, content_map);
+        let content = get_content_for_path(path, &content_map);
 
         assert_eq!(content, None);
     }
