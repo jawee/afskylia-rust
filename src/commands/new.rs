@@ -4,6 +4,7 @@ pub fn new(args: &Vec<String>) {
     let command = &args[2];
     // let command = args.iter().nth(2);
     match command.as_str() {
+        "help" => println!("{}", HELP),
         "site" => new_site(),
         "page" => new_page(&args[3]),
         _ => println!("Unknown parameter '{}'", command.as_str()),
@@ -34,6 +35,18 @@ fn get_site_dirs() -> Vec<String> {
 fn new_page(_page_name: &str) {
     println!("create page {}", _page_name);
 }
+
+static HELP: &str = r#"
+Create a new site or create a new content file.
+
+Usage:
+  afskylia new [command]
+
+Available Commands:
+  site        Create a new site 
+  page        Create a new page
+
+"#;
 
 #[cfg(test)]
 mod tests {
