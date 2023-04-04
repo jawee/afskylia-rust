@@ -24,7 +24,7 @@ mod tests {
     fn parse_returns_expected_page() {
         let layout = r#"
             <html>
-           <head><title>Hello</title>
+            <head><title>Hello</title>
             <body>
             {content}
             </body>
@@ -34,7 +34,7 @@ mod tests {
 
         let expected = r#"
             <html>
-           <head><title>Hello</title>
+            <head><title>Hello</title>
             <body>
             <h1>Hello</h1>
             </body>
