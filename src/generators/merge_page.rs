@@ -15,6 +15,12 @@ impl MergePage {
     }
 }
 
+impl ToString for MergePage {
+    fn to_string(&self) -> String {
+        return String::from(&self.0);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use claim::{assert_ok, assert_err};

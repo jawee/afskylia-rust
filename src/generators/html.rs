@@ -14,13 +14,11 @@ impl HtmlGenerator {
 
         let mut i = self.lexer.next_token();
         while i.token_type != TokenType::EOF {
-            // println!("{}", i.token_type);
             if i.token_type == TokenType::EOF {
                 break;
             }
 
             let token_html = self.get_html_for_token(i)?;
-            // println!("pushing {}", token_html);
             str_vec.push(token_html);
 
             i = self.lexer.next_token();
@@ -58,7 +56,6 @@ impl HtmlGenerator {
                 let mut i = self.lexer.next_token();
                 while i.token_type != TokenType::EOF {
                     let peek_token = self.lexer.peek_next_token();
-                    println!("{:?} => {:?}", i, peek_token);
 
                     if i.token_type == TokenType::LineBreak 
                         && 
@@ -68,7 +65,6 @@ impl HtmlGenerator {
                          || 
                          peek_token.token_type == TokenType::OrderedItem
                         ) {
-                        println!("breaking");
                         break;
                     }
                     str_vec.push(i.literal);
@@ -99,8 +95,7 @@ impl HtmlGenerator {
             },
             TokenType::LineBreak => String::from(""),
             _ => {
-                println!("{:?}", token);
-                todo!()
+                todo!("Hit _ in html.rs, shouldn't happen");
             },
         };
         return Ok(str);

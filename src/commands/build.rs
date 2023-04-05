@@ -1,20 +1,44 @@
 use std::collections::HashMap;
 use std::env::current_dir;
 use std::fs::{self, File};
-use std::io::{Read, BufReader};
+use std::io::{Read, BufReader, BufWriter, Write};
 use std::path::PathBuf;
+
+use crate::generators::{MergePage, HtmlGenerator};
+use crate::parsers::markdown::Lexer;
 
 pub fn build(_args: &Vec<String>) {
     let curr_dir_path = current_dir().unwrap();
-    build_internal(curr_dir_path);
+    build_internal(&curr_dir_path);
 }
 
-fn build_internal(base_dir: PathBuf) {
-    let _layouts_map = get_layouts(&base_dir);
-    let _content_map = get_content(&base_dir);
-    todo!("Build is not implemented yet.");
+fn build_internal(base_dir: &PathBuf) {
+    let layouts_map = get_layouts(&base_dir);
+    let content_map = get_content(&base_dir);
+
+    let public_dir_path = base_dir.join(PUBLIC_DIR_PATH);
+
+    if !public_dir_path.is_dir() {
+        fs::create_dir(&public_dir_path).expect("ERROR: Couldn't create public dir");
+    }
+
+    for (key, value) in layouts_map.iter() {
+        let file_name = &key[..=key.len()-6];
+        let content_key = &format!("{file_name}.md");
+        let markdown_content = content_map.get(content_key).expect(&format!("ERROR: couldn't get content for {content_key}"));
+
+        let lexer = Lexer::new(markdown_content).unwrap();
+        let mut html_generator = HtmlGenerator::new(lexer);
+        let html_content = html_generator.get_html().unwrap();
+
+        let page = MergePage::parse(value, &html_content).expect("ERROR: Couldn't merge page");
+        let public_file = File::create(&public_dir_path.join(key)).expect(&format!("ERROR: Couldn't create page {key}"));
+        let mut buf_writer = BufWriter::new(public_file);
+        buf_writer.write(page.to_string().as_ref()).expect("ERROR: couldn't write content to file");
+    }
 }
 
+static PUBLIC_DIR_PATH: &str = "public";
 static LAYOUT_DIR_PATH: &str = "layouts";
 static CONTENT_DIR_PATH: &str = "content";
 
@@ -84,6 +108,17 @@ mod tests {
     use uuid::Uuid;
 
     use crate::commands::build::*;
+
+    #[test]
+    fn test_build_internal() {
+        let base_dir_path = create_test_site();
+        println!("{}", base_dir_path.clone().into_os_string().into_string().unwrap());
+        build_internal(&base_dir_path);
+
+        let public_dir_path = base_dir_path.join(PUBLIC_DIR_PATH);
+        assert_ok!(fs::read_to_string(public_dir_path.join("index.html")));
+        assert_ok!(fs::remove_dir_all(base_dir_path.as_path()));
+    }
 
     #[test]
     fn test_get_content() {
