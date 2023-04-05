@@ -73,8 +73,6 @@ fn get_relative_file_path(file_path: &PathBuf, base_path: &PathBuf) -> PathBuf {
     return file_path.to_path_buf();
 }
 
-
-
 #[cfg(test)]
 mod tests {
     use std::path::{Path, PathBuf};
