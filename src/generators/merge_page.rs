@@ -15,6 +15,12 @@ impl MergePage {
     }
 }
 
+impl ToString for MergePage {
+    fn to_string(&self) -> String {
+        return String::from(&self.0);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use claim::{assert_ok, assert_err};
@@ -24,7 +30,7 @@ mod tests {
     fn parse_returns_expected_page() {
         let layout = r#"
             <html>
-           <head><title>Hello</title>
+            <head><title>Hello</title>
             <body>
             {content}
             </body>
@@ -34,7 +40,7 @@ mod tests {
 
         let expected = r#"
             <html>
-           <head><title>Hello</title>
+            <head><title>Hello</title>
             <body>
             <h1>Hello</h1>
             </body>
