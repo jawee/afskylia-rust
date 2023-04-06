@@ -22,19 +22,18 @@ fn build_internal(base_dir: &PathBuf) -> HashMap<PathBuf, String> {
         fs::create_dir(&public_dir_path).expect("ERROR: Couldn't create public dir");
     }
 
-    let base_template = layouts_map.remove("_base.html");
+    let maybe_base_template = layouts_map.remove("_base.html");
 
     for (key, value) in layouts_map.iter() {
         let file_name = &key[..=key.len()-6];
         let content_key = &format!("{file_name}.md");
-        println!("trying to get content for {content_key}");
         let markdown_content = content_map.get(content_key).expect(&format!("ERROR: couldn't get content for {content_key}"));
 
         let lexer = Lexer::new(markdown_content).unwrap();
         let mut html_generator = HtmlGenerator::new(lexer);
         let html_content = html_generator.get_html().unwrap();
 
-        let layout = merge_base_with_layout(&base_template, value);
+        let layout = merge_base_with_layout(&maybe_base_template, &value);
         let page = MergePage::parse(&layout, &html_content).expect("ERROR: Couldn't merge page");
         let public_file = File::create(&public_dir_path.join(key)).expect(&format!("ERROR: Couldn't create page {key}"));
         let mut buf_writer = BufWriter::new(public_file);
@@ -47,8 +46,8 @@ fn build_internal(base_dir: &PathBuf) -> HashMap<PathBuf, String> {
 fn merge_base_with_layout(base_tpl: &Option<String>, content_layout: &String) -> String {
     let layout = match base_tpl {
         Some(base) => {
-            let res = base.replace("{layout}", &content_layout);
-            res
+            let res = base.replace("{layout}", content_layout);
+            res.to_string()
         },
         None => {
             content_layout.to_string()
