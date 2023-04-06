@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::env::current_dir;
 use std::fs::{self, File};
 use std::io::{Read, BufReader, BufWriter, Write};
-use std::path::{PathBuf, Path};
+use std::path::PathBuf;
 
 use crate::generators::{MergePage, HtmlGenerator};
 use crate::parsers::markdown::Lexer;
@@ -13,7 +13,7 @@ pub fn build(_args: &Vec<String>) {
 }
 
 fn build_internal(base_dir: &PathBuf) -> HashMap<PathBuf, String> {
-    let layouts_map = get_layouts(&base_dir);
+    let mut layouts_map = get_layouts(&base_dir);
     let content_map = get_content(&base_dir);
 
     let public_dir_path = base_dir.join(PUBLIC_DIR_PATH);
@@ -22,23 +22,39 @@ fn build_internal(base_dir: &PathBuf) -> HashMap<PathBuf, String> {
         fs::create_dir(&public_dir_path).expect("ERROR: Couldn't create public dir");
     }
 
+    let maybe_base_template = layouts_map.remove("_base.html");
+
     for (key, value) in layouts_map.iter() {
         let file_name = &key[..=key.len()-6];
         let content_key = &format!("{file_name}.md");
-        println!("trying to get content for {content_key}");
         let markdown_content = content_map.get(content_key).expect(&format!("ERROR: couldn't get content for {content_key}"));
 
         let lexer = Lexer::new(markdown_content).unwrap();
         let mut html_generator = HtmlGenerator::new(lexer);
         let html_content = html_generator.get_html().unwrap();
 
-        let page = MergePage::parse(value, &html_content).expect("ERROR: Couldn't merge page");
+        let layout = merge_base_with_layout(&maybe_base_template, &value);
+        let page = MergePage::parse(&layout, &html_content).expect("ERROR: Couldn't merge page");
         let public_file = File::create(&public_dir_path.join(key)).expect(&format!("ERROR: Couldn't create page {key}"));
         let mut buf_writer = BufWriter::new(public_file);
         buf_writer.write(page.to_string().as_ref()).expect("ERROR: couldn't write content to file");
     }
 
     return HashMap::new();
+}
+
+fn merge_base_with_layout(base_tpl: &Option<String>, content_layout: &String) -> String {
+    let layout = match base_tpl {
+        Some(base) => {
+            let res = base.replace("{layout}", content_layout);
+            res.to_string()
+        },
+        None => {
+            content_layout.to_string()
+        }
+    };
+
+    return layout;
 }
 
 static PUBLIC_DIR_PATH: &str = "public";

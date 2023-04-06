@@ -1,1 +1,7 @@
 /target
+
+# ignore site folders for testing in repo
+content
+layouts
+resources
+public
