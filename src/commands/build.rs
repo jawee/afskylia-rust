@@ -27,9 +27,30 @@ fn build_internal(base_dir: &PathBuf) -> HashMap<PathBuf, String> {
     for (key, value) in layouts_map.iter() {
         let file_name = &key[..=key.len()-6];
         let content_key = &format!("{file_name}.md");
-        let markdown_content = content_map.get(content_key).expect(&format!("ERROR: couldn't get content for {content_key}"));
+        let markdown_content = match content_map.get(content_key) {
+            Some(c) => c.to_string(),
+            None => {
+                //TODO: need to handle this better. But for now just merge all posts into a
+                //long markdown string and generate html
+                let keys = content_map.keys().filter(|x| x.starts_with(&format!("{file_name}/"))).collect::<Vec<&String>>();
+                let mut str = String::new();
+                for key in keys {
+                    let cont = match content_map.get(key) {
+                        Some(c) => c,
+                        None => ""
+                    };
 
-        let lexer = Lexer::new(markdown_content).unwrap();
+                    str.push_str(cont);
+                    str.push_str("\n\n");
+                }
+                str
+            }
+        };
+
+        println!("markdown_content: {markdown_content}");
+        // let markdown_content = content_map.get(content_key).expect(&format!("ERROR: couldn't get content for {content_key}"));
+
+        let lexer = Lexer::new(&markdown_content).unwrap();
         let mut html_generator = HtmlGenerator::new(lexer);
         let html_content = html_generator.get_html().unwrap();
 
@@ -146,9 +167,8 @@ mod tests {
 
         assert_ok!(fs::remove_dir_all(base_dir.as_path()));
         assert_some!(content_map.get("index.md"), "Couldn't get index.md");
-        //TODO: Handle content in folders 
-        // assert_some!(content_map.get("posts/post-1.md"), "Couldn't get posts/post-1.md");
-        // assert_some!(content_map.get("posts/post-2.md"), "Couldn't get posts/post-2.md");
+        assert_some!(content_map.get("posts/post-1.md"), "Couldn't get posts/post-1.md");
+        assert_some!(content_map.get("posts/post-2.md"), "Couldn't get posts/post-2.md");
     }
     #[test]
     fn test_get_layouts() {
@@ -157,14 +177,7 @@ mod tests {
 
         assert_ok!(fs::remove_dir_all(base_dir.as_path()));
         assert_some!(layout_map.get("index.html"));
-        //TODO: handle posts where content is in folder
-        // assert_some!(layout_map.get("posts.html"));
-    }
-
-    #[test]
-    fn test_build() {
-        let base_dir = create_test_site();
-        assert_ok!(fs::remove_dir_all(base_dir.as_path()));
+        assert_some!(layout_map.get("posts.html"));
     }
 
     fn create_test_site() -> PathBuf {
@@ -186,20 +199,19 @@ mod tests {
         buf_writer = BufWriter::new(index_content_file);
         buf_writer.write(INDEX_CONTENT.as_ref()).expect("ERROR: couldn't write to content file");
 
-        // TODO: handle content in folder
-        // let posts_layout_file = File::create(base_dir.as_path().join("layouts/posts.html").as_path()).expect("ERROR: couldn't create posts layout file");
-        // buf_writer = BufWriter::new(posts_layout_file);
-        // buf_writer.write(INDEX_LAYOUT.as_ref()).expect("ERROR: couldn't write to posts file");
+        let posts_layout_file = File::create(base_dir.as_path().join("layouts/posts.html").as_path()).expect("ERROR: couldn't create posts layout file");
+        buf_writer = BufWriter::new(posts_layout_file);
+        buf_writer.write(INDEX_LAYOUT.as_ref()).expect("ERROR: couldn't write to posts file");
 
-        // fs::create_dir(base_dir.join("content").join("posts")).expect("ERROR: Couldn't create posts dir in contents");
-        //
-        // let posts_file_1 = File::create(base_dir.join("content").join("posts").join("post-1.md")).expect("Error: couldn't create post-1.md");
-        // buf_writer = BufWriter::new(posts_file_1);
-        // buf_writer.write(POST_1_CONTENT.as_ref()).expect("ERROR: couldn't write to content file");
-        //
-        // let posts_file_2 = File::create(base_dir.join("content").join("posts").join("post-2.md")).expect("Error: couldn't create post-2.md");
-        // buf_writer = BufWriter::new(posts_file_2);
-        // buf_writer.write(POST_2_CONTENT.as_ref()).expect("ERROR: couldn't write to content file");
+        fs::create_dir(base_dir.join("content").join("posts")).expect("ERROR: Couldn't create posts dir in contents");
+
+        let posts_file_1 = File::create(base_dir.join("content").join("posts").join("post-1.md")).expect("Error: couldn't create post-1.md");
+        buf_writer = BufWriter::new(posts_file_1);
+        buf_writer.write(POST_1_CONTENT.as_ref()).expect("ERROR: couldn't write to content file");
+
+        let posts_file_2 = File::create(base_dir.join("content").join("posts").join("post-2.md")).expect("Error: couldn't create post-2.md");
+        buf_writer = BufWriter::new(posts_file_2);
+        buf_writer.write(POST_2_CONTENT.as_ref()).expect("ERROR: couldn't write to content file");
 
         return base_dir;
     }
