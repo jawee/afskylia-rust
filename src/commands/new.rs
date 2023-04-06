@@ -92,6 +92,7 @@ mod tests {
 
     use std::{env::temp_dir, fs::{File, self}, io::Error};
 
+    use claim::assert_ok;
     use uuid::Uuid;
 
     use super::{new_site_internal, get_site_dirs};
@@ -109,6 +110,12 @@ mod tests {
             assert_eq!(dir_meta.is_dir(), true, "{} is not a directory", d);
         }
 
+        let mut base_metadata = fs::metadata(dir.join("layouts/_base.html"));
+        assert_ok!(base_metadata);
+        base_metadata = fs::metadata(dir.join("layouts/index.html"));
+        assert_ok!(base_metadata);
+        base_metadata = fs::metadata(dir.join("content/index.md"));
+        assert_ok!(base_metadata);
         assert!(std::panic::catch_unwind(|| {}).is_ok());
 
         fs::remove_dir_all(dir.as_path())?;
