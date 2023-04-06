@@ -169,8 +169,8 @@ mod tests {
 
     fn create_test_site() -> PathBuf {
         let uuid = Uuid::new_v4().to_string();
-        let base_dir = temp_dir().join(uuid);
-        fs::create_dir(base_dir.as_path()).unwrap();
+        let base_dir = temp_dir().join("rust").join(uuid);
+        fs::create_dir_all(base_dir.as_path()).expect("ERROR: couldn't create base_dir");
 
         let dirs = vec!["content", "layouts", "resources"];
         for dir in dirs {
