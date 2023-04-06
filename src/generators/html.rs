@@ -80,7 +80,10 @@ impl HtmlGenerator {
                 while i.token_type != TokenType::EOF 
                     && 
                     !(i.token_type == TokenType::LineBreak 
-                      && self.lexer.peek_next_token().token_type == TokenType::LineBreak){
+                      && (self.lexer.peek_next_token().token_type == TokenType::LineBreak || 
+                          self.lexer.peek_next_token().token_type == TokenType::EOF)) {
+
+
                     if i.token_type == TokenType::LineBreak {
                         str_vec.push(String::from("</li><li>"));
                         self.lexer.next_token();
@@ -115,6 +118,32 @@ mod tests {
                      1. A\n\
                      2. B";
         let expected = "<h1>He</h1><p>Lorem ipsum</p><ol><li>A</li><li>B</li></ol>";
+
+        let lexer = Lexer::new(input).unwrap();
+        let mut html_generator = HtmlGenerator::new(lexer);
+
+        let result = html_generator.get_html().unwrap();
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn get_ordered_list_eof_2() {
+        let input = "1. A\n\
+                     2. B";
+        let expected = "<ol><li>A</li><li>B</li></ol>";
+
+        let lexer = Lexer::new(input).unwrap();
+        let mut html_generator = HtmlGenerator::new(lexer);
+
+        let result = html_generator.get_html().unwrap();
+        assert_eq!(result, expected);
+    }
+    #[test]
+    fn get_ordered_list_eof() {
+        let input = "1. A\n\
+                     2. B\n\
+                     ";
+        let expected = "<ol><li>A</li><li>B</li></ol>";
 
         let lexer = Lexer::new(input).unwrap();
         let mut html_generator = HtmlGenerator::new(lexer);

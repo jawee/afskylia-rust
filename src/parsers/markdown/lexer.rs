@@ -96,6 +96,41 @@ mod tests {
     use claim::{assert_ok, assert_err, assert_matches};
 
     #[test]
+    fn orderedlist_2() {
+        let input = "1. A\n\
+                     2. B";
+        println!("Input: {} end", input);
+        let expected = vec![
+        TokenType::OrderedItem, TokenType::Letter, TokenType::LineBreak,
+        TokenType::OrderedItem, TokenType::Letter, TokenType::EOF];
+
+        let mut lexer = Lexer::new(input).unwrap();
+        for e in expected {
+            let tok = lexer.next_token();
+            println!("actual: {} == expected: {}", tok.token_type, e);
+            assert_eq!(tok.token_type, e, "actual: {} == expected: {}", tok.token_type, e);
+        }
+    }
+
+    #[test]
+    fn orderedlist() {
+        let input = "1. A\n\
+                     2. B\n\
+                     ";
+        println!("Input: {} end", input);
+        let expected = vec![
+        TokenType::OrderedItem, TokenType::Letter, TokenType::LineBreak,
+        TokenType::OrderedItem, TokenType::Letter, TokenType::LineBreak, TokenType::EOF];
+
+        let mut lexer = Lexer::new(input).unwrap();
+        for e in expected {
+            let tok = lexer.next_token();
+            println!("actual: {} == expected: {}", tok.token_type, e);
+            assert_eq!(tok.token_type, e, "actual: {} == expected: {}", tok.token_type, e);
+        }
+    }
+
+    #[test]
     fn peek_next_token_paragraph_orderedlist() {
         let input = "L\n\
                      1. A";
