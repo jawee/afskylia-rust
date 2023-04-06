@@ -47,9 +47,6 @@ fn build_internal(base_dir: &PathBuf) -> HashMap<PathBuf, String> {
             }
         };
 
-        println!("markdown_content: {markdown_content}");
-        // let markdown_content = content_map.get(content_key).expect(&format!("ERROR: couldn't get content for {content_key}"));
-
         let lexer = Lexer::new(&markdown_content).unwrap();
         let mut html_generator = HtmlGenerator::new(lexer);
         let html_content = html_generator.get_html().unwrap();
