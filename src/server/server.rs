@@ -18,7 +18,10 @@ fn handle_stream(mut stream: TcpStream, content_map: &HashMap<String, Vec<u8>>) 
 
 fn handle_connection(mut stream: impl Write, request_line: String, content_map: &HashMap<String, Vec<u8>>) {
     println!("{request_line}");
-    let path = get_request_path(&request_line);
+    let mut path = get_request_path(&request_line);
+    if path == "/" {
+        path = "/index.html".to_string();
+    }
 
     let (status_line, content) = match get_content_for_path(path.clone(), &content_map.clone()) {
         None => {

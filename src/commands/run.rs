@@ -1,57 +1,39 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, env::current_dir, path::PathBuf, fs::{self, File}, io::{BufReader, Read}};
 
 use crate::server;
 
 pub fn run(_args: &Vec<String>) {
+    let curr_dir_path = current_dir().unwrap();
 
-    let image_byte_vec: Vec<u8> = Vec::from([137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 0, 1, 0, 0, 0, 1, 8, 6, 0, 0, 0, 31, 21, 196, 137, 0, 0, 0, 1, 115, 82, 71, 66, 0, 174, 206, 28, 233, 0, 0, 0, 13, 73, 68, 65, 84, 24, 87, 99, 248, 195, 118, 249, 63, 0, 6, 172, 2, 213, 240, 132, 102, 115, 0, 0, 0, 0, 73, 69, 78, 68, 174, 66, 96, 130]);
-    let mut hash_map: HashMap<String, Vec<u8>> = HashMap::new();
+    let public_folder_path = curr_dir_path.join(PUBLIC_DIR_PATH);
 
-    hash_map.insert(String::from("/"), HTML.to_string().as_bytes().to_vec());
-    hash_map.insert(String::from("/style.css"), CSS.to_string().as_bytes().to_vec());
-    hash_map.insert(String::from("404"), NOT_FOUND.to_string().as_bytes().to_vec());
-    hash_map.insert(String::from("/1x1.png"), image_byte_vec.as_slice().to_vec());
-    hash_map.insert(String::from("/script.js"), JS.to_string().as_bytes().to_vec());
+    let map = get_folder_contents(public_folder_path);
 
-    server::start(&hash_map);
+    server::start(&map);
 }
 
-// const IMAGE = [137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 0, 1, 0, 0, 0, 1, 8, 6, 0, 0, 0, 31, 21, 196, 137, 0, 0, 0, 1, 115, 82, 71, 66, 0, 174, 206, 28, 233, 0, 0, 0, 13, 73, 68, 65, 84, 24, 87, 99, 248, 195, 118, 249, 63, 0, 6, 172, 2, 213, 240, 132, 102, 115, 0, 0, 0, 0, 73, 69, 78, 68, 174, 66, 96, 130];
+static PUBLIC_DIR_PATH: &str = "public";
 
-const CSS: &str = r#"
-body {
-    background-color: #ccc;
+fn get_folder_contents(public_folder_path: PathBuf) -> HashMap<String, Vec<u8>> {
+    let mut map = HashMap::new();
+    let dir = fs::read_dir(&public_folder_path).expect("ERROR: Can't read directory");
+    for path in dir {
+        let path = path.expect("ERROR: Something went wrong with path").path();
+
+        let file = File::open(&path).expect("ERROR: Couldn't open file");
+        let mut buf_reader = BufReader::new(file);
+                                                                                                                                                     
+        let mut content = String::new();
+        buf_reader.read_to_string(&mut content).expect("ERROR: Couldn't read file to string");
+
+        let relative_file_path = get_relative_file_path(&path, &public_folder_path).into_os_string().into_string().expect("ERROR: COuldn't convert path to string");
+        let relative_file_path_string = format!("/{}", relative_file_path);
+        map.insert(relative_file_path_string, content.as_bytes().to_vec());
+    }
+    return map;
 }
-"#;
 
-const JS: &str = r#"
-    console.log("hello");
-"#;
-
-const HTML: &str = r#"
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>Hello!</title>
-    <link rel="stylesheet" href="style.css">
-  </head>
-  <body>
-    <h1>Hello!</h1>
-    <p>Hi from Rust</p>
-    <script src="script.js"></script>
-  </body>
-</html>"#;
-
-const NOT_FOUND: &str = r#"
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>404 - Not Found</title>
-  </head>
-  <body>
-    <h1>Custom 404 - Not Found!</h1>
-    <p>Sorry, I don't know what you're asking for.</p>
-  </body>
-</html>"#;
+fn get_relative_file_path(file_path: &PathBuf, base_path: &PathBuf) -> PathBuf {
+    let file_path = file_path.strip_prefix(base_path).expect("ERROR: Couldn't strip prefix");
+    return file_path.to_path_buf();
+}
