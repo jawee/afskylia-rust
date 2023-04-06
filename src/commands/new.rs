@@ -48,8 +48,7 @@ fn new_page(_page_name: &str) {
     println!("create page {}", _page_name);
 }
 
-static BASE: &str = r#"
-<!DOCTYPE html>
+static BASE: &str = r#"<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
