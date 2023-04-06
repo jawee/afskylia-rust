@@ -177,12 +177,12 @@ mod tests {
             fs::create_dir(base_dir.join(dir).as_path()).unwrap();
         }
 
-        let index_layout_file = File::create(base_dir.as_path().join("layouts").as_path().join("index.html").as_path()).expect("ERROR: couldn't create index layout file");
+        let index_layout_file = File::create(base_dir.join("layouts").join("index.html")).expect("ERROR: couldn't create index layout file");
         let mut buf_writer = BufWriter::new(index_layout_file);
         buf_writer.write(INDEX_LAYOUT.as_ref()).expect("ERROR: couldn't write to layout file");
 
 
-        let index_content_file = File::create(base_dir.as_path().join("content").as_path().join("index.md").as_path()).expect("ERROR: couldn't create index content file");
+        let index_content_file = File::create(base_dir.join("content").join("index.md")).expect("ERROR: couldn't create index content file");
         buf_writer = BufWriter::new(index_content_file);
         buf_writer.write(INDEX_CONTENT.as_ref()).expect("ERROR: couldn't write to content file");
 
