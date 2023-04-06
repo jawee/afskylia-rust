@@ -100,37 +100,37 @@ mod tests {
     #[test]
     fn test_new_site_internal() -> Result<(), Error> {
         let uuid = Uuid::new_v4().to_string();
-        let dir = temp_dir().join(uuid);
-        fs::create_dir(dir.as_path())?;
+        let base_dir = temp_dir().join("rust").join(uuid);
+        fs::create_dir_all(base_dir.as_path()).expect("ERROR: couldn't create base_dir");
 
-        new_site_internal(dir.as_path())?;
+        new_site_internal(base_dir.as_path())?;
 
         for d in get_site_dirs() {
-            let dir_meta = fs::metadata(dir.join(&d))?;
+            let dir_meta = fs::metadata(base_dir.join(&d))?;
             assert_eq!(dir_meta.is_dir(), true, "{} is not a directory", d);
         }
 
-        let mut base_metadata = fs::metadata(dir.join("layouts/_base.html"));
+        let mut base_metadata = fs::metadata(base_dir.join("layouts/_base.html"));
         assert_ok!(base_metadata);
-        base_metadata = fs::metadata(dir.join("layouts/index.html"));
+        base_metadata = fs::metadata(base_dir.join("layouts/index.html"));
         assert_ok!(base_metadata);
-        base_metadata = fs::metadata(dir.join("content/index.md"));
+        base_metadata = fs::metadata(base_dir.join("content/index.md"));
         assert_ok!(base_metadata);
         assert!(std::panic::catch_unwind(|| {}).is_ok());
 
-        fs::remove_dir_all(dir.as_path())?;
+        fs::remove_dir_all(base_dir.as_path())?;
         return Ok(());
     }
 
     #[test]
     fn test_tmp_dir() -> Result<(), Error> {
         let uuid = Uuid::new_v4().to_string();
-        let dir = temp_dir().join(uuid);
-        fs::create_dir(dir.as_path())?;
+        let base_dir = temp_dir().join("rust").join(uuid);
+        fs::create_dir_all(base_dir.as_path()).expect("ERROR: couldn't create base_dir");
 
-        let file_path = dir.as_path().join("tmpfile.txt");
+        let file_path = base_dir.as_path().join("tmpfile.txt");
         File::create(&file_path)?;
-        let dir_path = dir.as_path().join("templates");
+        let dir_path = base_dir.as_path().join("templates");
         fs::create_dir(&dir_path)?;
 
         let file_meta = fs::metadata(file_path)?;
@@ -139,7 +139,7 @@ mod tests {
         assert_eq!(file_meta.is_dir(), false);
         assert_eq!(dir_meta.is_dir(), true);
         assert_eq!(dir_meta.is_file(), false);
-        fs::remove_dir_all(dir.as_path())?;
+        fs::remove_dir_all(base_dir.as_path())?;
         return Ok(());
     }
 }
