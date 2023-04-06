@@ -1,4 +1,4 @@
-use std::{path::Path, env::current_dir, fs, io::Error};
+use std::{path::Path, env::current_dir, fs::{self, File}, io::{Error, BufWriter, Write}};
 
 pub fn new(args: &Vec<String>) {
     let command = &args[2];
@@ -18,12 +18,24 @@ fn new_site() {
 
 fn new_site_internal(base_dir: &Path) -> Result<(), Error> {
     println!("create new site at {}", base_dir.display());
-    
-    let dirs = get_site_dirs();
-    for dir in dirs {
+
+    for dir in get_site_dirs() {
         fs::create_dir(base_dir.join(dir).as_path())?;
     }
 
+    let base_layout_file = File::create(base_dir.join("layouts").join("_base.html")).expect("ERROR: couldn't create base layout file");
+    let mut buf_writer = BufWriter::new(base_layout_file);
+    buf_writer.write(BASE.as_ref()).expect("ERROR: couldn't write to layout file");
+
+
+    let index_layout_file = File::create(base_dir.join("layouts").join("index.html")).expect("ERROR: couldn't create index layout file");
+    buf_writer = BufWriter::new(index_layout_file);
+    buf_writer.write(INDEX_LAYOUT.as_ref()).expect("ERROR: couldn't write to layout file");
+
+
+    let index_content_file = File::create(base_dir.join("content").join("index.md")).expect("ERROR: couldn't create index content file");
+    buf_writer = BufWriter::new(index_content_file);
+    buf_writer.write(INDEX_CONTENT.as_ref()).expect("ERROR: couldn't write to content file");
     return Ok(());
 }
 
@@ -36,15 +48,42 @@ fn new_page(_page_name: &str) {
     println!("create page {}", _page_name);
 }
 
+static BASE: &str = r#"
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>My Page</title>
+</head>
+<body>
+{layout}
+</body>
+</html>
+"#;
+static INDEX_CONTENT: &str = r#"
+# Index
+
+Some content
+
+1. First list item
+2. Second list item
+
+
+"#;
+
+static INDEX_LAYOUT: &str = r#"
+{content}
+"#;
+
 static HELP: &str = r#"
 Create a new site or create a new content file.
 
 Usage:
-  afskylia new [command]
+afskylia new [command]
 
 Available Commands:
-  site        Create a new site 
-  page        Create a new page
+site        Create a new site 
+page        Create a new page
 
 "#;
 
