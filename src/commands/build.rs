@@ -179,7 +179,26 @@ mod tests {
     use crate::commands::build::*;
 
     #[test]
-    fn test_copy_resources() {
+    fn build_content_with_link_renders_a_tag() {
+        let page_content = "# Index\n\
+                            [link](https://google.com)";
+        let site_builder = SiteBuilder::new()
+            .with_base_layout("base", BASE)
+            .with_page_with_content("index", INDEX_LAYOUT, page_content);
+
+        let base_dir_path = site_builder.get_path();
+
+        build_internal(&base_dir_path);
+
+        let public_dir_path = base_dir_path.join(PUBLIC_DIR_PATH);
+        let index_file_str = fs::read_to_string(public_dir_path.join("index.html")).expect("ERROR: Couldn't read index.html");
+
+        assert_ok!(fs::remove_dir_all(base_dir_path.as_path()));
+        assert_eq!(index_file_str.contains("<a href=\"https://google.com\">link</a>"), true, "Does not contain link");
+
+    }
+    #[test]
+    fn copy_resources_copies_resources() {
         let site_builder = SiteBuilder::new()
             .with_resource("style", "css", "")
             .with_resource("script", "js", "");
@@ -197,7 +216,7 @@ mod tests {
     }
 
     #[test]
-    fn test_build_menu() {
+    fn build_menu_creates_menu_html() {
         let menu_items: Vec<String> = vec!["index.html", "second-page.html", "posts.html"].iter().map(|x| x.to_string()).collect();
         let expected = "<ul><li><a href=\"/index.html\">index</a></li><li><a href=\"/second-page.html\">second-page</a></li><li><a href=\"/posts.html\">posts</a></li></ul>";
 
@@ -206,7 +225,7 @@ mod tests {
     }
 
     #[test]
-    fn test_build_internal() {
+    fn build_internal_builds_website() {
         let site_builder = SiteBuilder::new()
             .with_base_layout("base", BASE)
             .with_page_with_content("index", INDEX_LAYOUT, INDEX_CONTENT);
@@ -225,7 +244,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_content_nested() {
+    fn get_content_nested_returns_nested_content() {
         let site_builder = SiteBuilder::new()
             .with_base_layout("base", BASE)
             .with_page_with_content("index", INDEX_LAYOUT, INDEX_CONTENT)
@@ -242,7 +261,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_content() {
+    fn get_content_returns_content() {
         let site_builder = SiteBuilder::new()
             .with_base_layout("base", BASE)
             .with_page_with_content("index", INDEX_LAYOUT, INDEX_CONTENT);
@@ -255,7 +274,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_layouts() {
+    fn get_layouts_returns_layouts() {
         let site_builder = SiteBuilder::new()
             .with_base_layout("base", BASE)
             .with_page_with_content("index", INDEX_LAYOUT, INDEX_CONTENT)
@@ -271,7 +290,7 @@ mod tests {
 
 
     #[test]
-    fn test_strip_base_path_with_subdirectory() {
+    fn strip_base_path_with_subdirectory_returns_relative_path() {
         let base_path = PathBuf::from("/home/user/website/");
         let file_path = PathBuf::from("/home/user/website/subdir/index.txt");
 
@@ -281,7 +300,7 @@ mod tests {
     }
 
     #[test]
-    fn test_strip_base_path() {
+    fn strip_base_path_returns_relative_path() {
         let base_path = PathBuf::from("/home/user/website/");
         let file_path = PathBuf::from("/home/user/website/index.txt");
 
