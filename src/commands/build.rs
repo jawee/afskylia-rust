@@ -172,13 +172,10 @@ fn get_relative_file_path(file_path: &PathBuf, base_path: &PathBuf) -> PathBuf {
 #[cfg(test)]
 mod tests {
     use std::path::{Path, PathBuf};
-    use std::env::temp_dir;
-    use std::fs::{self, File};
-    use std::io::{Write, BufWriter};
 
     use claim::{assert_ok, assert_some};
-    use uuid::Uuid;
 
+    use crate::commands::test_utils::create_test_site;
     use crate::commands::build::*;
 
     #[test]
@@ -240,7 +237,41 @@ mod tests {
         assert_some!(layout_map.get("posts.html"));
     }
 
-    fn create_test_site() -> PathBuf {
+
+    #[test]
+    fn test_strip_base_path_with_subdirectory() {
+        let base_path = PathBuf::from("/home/user/website/");
+        let file_path = PathBuf::from("/home/user/website/subdir/index.txt");
+
+        let res = get_relative_file_path(&file_path, &base_path);
+
+        assert_eq!(res.as_path(), Path::new("subdir/index.txt"));
+    }
+
+    #[test]
+    fn test_strip_base_path() {
+        let base_path = PathBuf::from("/home/user/website/");
+        let file_path = PathBuf::from("/home/user/website/index.txt");
+
+        let res = get_relative_file_path(&file_path, &base_path);
+
+        assert_eq!(res.as_path(), Path::new("index.txt"));
+    }
+
+
+}
+
+#[cfg(test)]
+pub mod test_utils {
+    use std::io::{BufWriter, Write};
+    use std::fs::{self, File};
+    use std::env::temp_dir;
+    use std::path::PathBuf;
+
+    use uuid::Uuid;
+
+
+    pub fn create_test_site() -> PathBuf {
         let uuid = Uuid::new_v4().to_string();
         let base_dir = temp_dir().join("rust").join(uuid);
         fs::create_dir_all(base_dir.as_path()).expect("ERROR: couldn't create base_dir");
@@ -281,27 +312,6 @@ mod tests {
 
         return base_dir;
     }
-
-    #[test]
-    fn test_strip_base_path_with_subdirectory() {
-        let base_path = PathBuf::from("/home/user/website/");
-        let file_path = PathBuf::from("/home/user/website/subdir/index.txt");
-
-        let res = get_relative_file_path(&file_path, &base_path);
-
-        assert_eq!(res.as_path(), Path::new("subdir/index.txt"));
-    }
-
-    #[test]
-    fn test_strip_base_path() {
-        let base_path = PathBuf::from("/home/user/website/");
-        let file_path = PathBuf::from("/home/user/website/index.txt");
-
-        let res = get_relative_file_path(&file_path, &base_path);
-
-        assert_eq!(res.as_path(), Path::new("index.txt"));
-    }
-
     static INDEX_CONTENT: &str = "\
         # Index\n\
         \n\
@@ -333,5 +343,4 @@ mod tests {
     static INDEX_LAYOUT: &str = r#"
         {content}
         "#;
-
 }
