@@ -23,6 +23,8 @@ fn build_internal(base_dir: &PathBuf) -> HashMap<PathBuf, String> {
     }
 
     let maybe_base_template = layouts_map.remove("_base.html");
+    let keys = layouts_map.clone().into_keys().collect::<Vec<String>>();
+    let menu_html = build_menu_html(keys);
 
     for (key, value) in layouts_map.iter() {
         let file_name = &key[..=key.len()-6];
@@ -51,7 +53,8 @@ fn build_internal(base_dir: &PathBuf) -> HashMap<PathBuf, String> {
         let mut html_generator = HtmlGenerator::new(lexer);
         let html_content = html_generator.get_html().unwrap();
 
-        let layout = merge_base_with_layout(&maybe_base_template, &value);
+        let mut layout = merge_base_with_layout(&maybe_base_template, &value);
+        layout = layout.replace("{menu}", &menu_html);
         let page = MergePage::parse(&layout, &html_content).expect("ERROR: Couldn't merge page");
         let public_file = File::create(&public_dir_path.join(key)).expect(&format!("ERROR: Couldn't create page {key}"));
         let mut buf_writer = BufWriter::new(public_file);
@@ -84,6 +87,18 @@ fn get_content(base_dir: &PathBuf) -> HashMap<String, String> {
 
     let map = get_content_rec(&content_dir_path, &content_dir_path);
     return map;
+}
+
+//TODO: Should probably have a struct instead of string, to support ordering and custom naming
+fn build_menu_html(pages: Vec<String>) -> String {
+    let mut menu_html = String::from("<ul>");
+    for page in pages {
+        let page_name = page.replace(".html", "");
+        let menu_item = format!("<li><a href=\"/{page}\">{page_name}</a></li>");
+        menu_html.push_str(&menu_item);
+    }
+    menu_html.push_str("</ul>");
+    return menu_html;
 }
 
 fn get_content_rec(dir: &PathBuf, base_dir: &PathBuf) -> HashMap<String, String> {
@@ -147,14 +162,26 @@ mod tests {
     use crate::commands::build::*;
 
     #[test]
+    fn test_build_menu() {
+        let menu_items: Vec<String> = vec!["index.html", "second-page.html", "posts.html"].iter().map(|x| x.to_string()).collect();
+        let expected = "<ul><li><a href=\"/index.html\">index</a></li><li><a href=\"/second-page.html\">second-page</a></li><li><a href=\"/posts.html\">posts</a></li></ul>";
+
+        let result = build_menu_html(menu_items);
+        assert_eq!(result, expected);
+    }
+    #[test]
     fn test_build_internal() {
         let base_dir_path = create_test_site();
-        println!("{}", base_dir_path.clone().into_os_string().into_string().unwrap());
         build_internal(&base_dir_path);
 
         let public_dir_path = base_dir_path.join(PUBLIC_DIR_PATH);
-        assert_ok!(fs::read_to_string(public_dir_path.join("index.html")));
+        let index_file_str = fs::read_to_string(public_dir_path.join("index.html")).expect("ERROR: Couldn't read index.html");
+
         assert_ok!(fs::remove_dir_all(base_dir_path.as_path()));
+        assert_eq!(index_file_str.contains("<h1"), true, "Does not contain h1");
+        assert_eq!(index_file_str.contains("<html"), true, "Does not contain html-tag");
+        assert_eq!(index_file_str.contains("<head>"), true, "Does not contain head-tag");
+        assert_eq!(index_file_str.contains("<body"), true, "Does not contain body-tag");
     }
 
     #[test]
@@ -190,6 +217,10 @@ mod tests {
         let index_layout_file = File::create(base_dir.join("layouts").join("index.html")).expect("ERROR: couldn't create index layout file");
         let mut buf_writer = BufWriter::new(index_layout_file);
         buf_writer.write(INDEX_LAYOUT.as_ref()).expect("ERROR: couldn't write to layout file");
+
+        let base_layout_file = File::create(base_dir.join("layouts").join("_base.html")).expect("ERROR: couldn't create base layout file");
+        buf_writer = BufWriter::new(base_layout_file);
+        buf_writer.write(BASE.as_ref()).expect("ERROR: couldn't write to content file");
 
 
         let index_content_file = File::create(base_dir.join("content").join("index.md")).expect("ERROR: couldn't create index content file");
@@ -235,22 +266,22 @@ mod tests {
 
 
 
-    static INDEX_CONTENT: &str = r#"
-        # Index
-
-        Some content
-        "#;
-    static POST_1_CONTENT: &str = r#"
-        # Post 1
-
-        Post content
-        "#;
-    static POST_2_CONTENT: &str = r#"
-        # Post 2
-
-        Post content
-        "#;
-    static INDEX_LAYOUT: &str = r#"
+    static INDEX_CONTENT: &str = "\
+        # Index\n\
+        \n\
+        Some content\n\
+        ";
+    static POST_1_CONTENT: &str = "\
+        # Post 1\n\
+        \n\
+        Post content\n\
+        ";
+    static POST_2_CONTENT: &str = "\
+        # Post 2\n\
+        \n\
+        Post content\n\
+        ";
+    static BASE: &str = r#"
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -258,9 +289,13 @@ mod tests {
         <title>404 - Not Found</title>
         </head>
         <body>
-        {content}
+        {menu}
+        {layout}
         </body>
         </html>
+        "#;
+    static INDEX_LAYOUT: &str = r#"
+        {content}
         "#;
 
 }

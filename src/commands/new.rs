@@ -55,6 +55,7 @@ static BASE: &str = r#"<!DOCTYPE html>
 <title>My Page</title>
 </head>
 <body>
+{menu}
 {layout}
 </body>
 </html>
