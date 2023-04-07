@@ -53,11 +53,11 @@ impl HtmlGenerator {
             },
             TokenType::Letter => {
                 let mut str_vec: Vec<String> = vec![format!("<p>{}", token.literal)];
-                let mut i = self.lexer.next_token();
-                while i.token_type != TokenType::EOF {
+                let mut next_token = self.lexer.next_token();
+                while next_token.token_type != TokenType::EOF {
                     let peek_token = self.lexer.peek_next_token();
 
-                    if i.token_type == TokenType::LineBreak 
+                    if next_token.token_type == TokenType::LineBreak 
                         && 
                         (peek_token.token_type == TokenType::LineBreak 
                          || 
@@ -67,8 +67,13 @@ impl HtmlGenerator {
                         ) {
                         break;
                     }
-                    str_vec.push(i.literal);
-                    i = self.lexer.next_token();
+                    
+                    if next_token.token_type == TokenType::RBracket {
+                        str_vec.push(self.generate_link_html());
+                    } else {
+                        str_vec.push(next_token.literal);
+                    }
+                    next_token = self.lexer.next_token();
                 };
                 str_vec.push(format!("</p>"));
                 str_vec.join("")
@@ -83,7 +88,6 @@ impl HtmlGenerator {
                       && (self.lexer.peek_next_token().token_type == TokenType::LineBreak || 
                           self.lexer.peek_next_token().token_type == TokenType::EOF)) {
 
-
                     if i.token_type == TokenType::LineBreak {
                         str_vec.push(String::from("</li><li>"));
                         self.lexer.next_token();
@@ -96,12 +100,101 @@ impl HtmlGenerator {
                 str_vec.push(format!("</li></ol>"));
                 str_vec.join("")
             },
+            TokenType::RBracket => {
+                let mut i = 1;
+                let mut peek_token = self.lexer.peek_nth_token(i);
+                let mut is_link = false;
+                loop {
+                    if peek_token.token_type == TokenType::EOF {
+                        break;
+                    }
+
+                    if peek_token.token_type == TokenType::LineBreak {
+                        break;
+                    }
+
+                    if peek_token.token_type == TokenType::LBracket && self.lexer.peek_nth_token(i+1).token_type == TokenType::RParen {
+                        //this is an actual link
+                        is_link = true;
+                        break;
+                    }
+
+                    i += 1;
+                    peek_token = self.lexer.peek_nth_token(i);
+                }
+
+                let mut res = String::default();
+                if is_link {
+                    let mut next_token = self.lexer.next_token();
+                    let mut title = String::default();
+                    while next_token.token_type != TokenType::LBracket {
+                        title.push_str(&next_token.literal);
+                        next_token = self.lexer.next_token();
+                    }
+
+                    let mut href = String::default();
+                    self.lexer.next_token(); // (
+                    next_token = self.lexer.next_token();
+                    while next_token.token_type != TokenType::LParen {
+                        href.push_str(&next_token.literal);
+                        next_token = self.lexer.next_token();
+                    }
+                    res = format!("<a href=\"{href}\">{title}</a>")
+                } 
+
+                res
+            },
             TokenType::LineBreak => String::from(""),
             _ => {
-                todo!("Hit _ in html.rs, shouldn't happen");
+                unreachable!("Hit _ in html.rs, shouldn't happen");
             },
         };
         return Ok(str);
+    }
+
+    fn generate_link_html(&mut self) -> String {
+        let mut i = 1;
+        let mut peek_token = self.lexer.peek_nth_token(i);
+        let mut is_link = false;
+        loop {
+            if peek_token.token_type == TokenType::EOF {
+                break;
+            }
+
+            if peek_token.token_type == TokenType::LineBreak {
+                break;
+            }
+
+            if peek_token.token_type == TokenType::LBracket && self.lexer.peek_nth_token(i+1).token_type == TokenType::RParen {
+                //this is an actual link
+                is_link = true;
+                break;
+            }
+
+            i += 1;
+            peek_token = self.lexer.peek_nth_token(i);
+        }
+
+        let mut res = String::default();
+        if is_link {
+            let mut next_token = self.lexer.next_token();
+            let mut title = String::default();
+            while next_token.token_type != TokenType::LBracket {
+                title.push_str(&next_token.literal);
+                next_token = self.lexer.next_token();
+            }
+
+            let mut href = String::default();
+            self.lexer.next_token(); // (
+            next_token = self.lexer.next_token();
+            while next_token.token_type != TokenType::LParen {
+                href.push_str(&next_token.literal);
+                next_token = self.lexer.next_token();
+            }
+            res = format!("<a href=\"{href}\">{title}</a>");
+        } 
+
+        return res;
     }
 }
 
@@ -110,6 +203,32 @@ mod tests {
     use crate::parsers::markdown::Lexer;
 
     use super::HtmlGenerator;
+
+    #[test]
+    fn get_link_in_paragraph() {
+        let input = "A [a](b) b";
+
+        let expected = "<p>A <a href=\"b\">a</a> b</p>";
+
+        let lexer = Lexer::new(input).expect("ERROR: Couldn't create lexer");
+
+        let mut html_generator = HtmlGenerator::new(lexer);
+        let result = html_generator.get_html().expect("ERROR: Couldn't get html");
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn get_link() {
+        let input = "[a](b)";
+
+        let expected = "<a href=\"b\">a</a>";
+
+        let lexer = Lexer::new(input).expect("ERROR: Couldn't create lexer");
+
+        let mut html_generator = HtmlGenerator::new(lexer);
+        let result = html_generator.get_html().expect("ERROR: Couldn't get html");
+        assert_eq!(result, expected);
+    }
 
     #[test]
     fn get_heading_with_paragraph_and_ordered_list() {

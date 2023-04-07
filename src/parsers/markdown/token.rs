@@ -25,6 +25,10 @@ pub enum TokenType {
     LineBreak,
     OrderedItem,
     Item,
+    LParen,
+    RParen,
+    RBracket,
+    LBracket,
 }
 
 impl fmt::Debug for TokenType {
@@ -37,6 +41,10 @@ impl fmt::Debug for TokenType {
             TokenType::LineBreak => write!(f, "TokenType::LineBreak"),
             TokenType::OrderedItem => write!(f, "TokenType::OrderedItem"),
             TokenType::Item => write!(f, "TokenType::Item"),
+            TokenType::LParen => write!(f, "TokenType::LParen"),
+            TokenType::RParen => write!(f, "TokenType::RParen"),
+            TokenType::RBracket => write!(f, "TokenType::RBracket"),
+            TokenType::LBracket => write!(f, "TokenType::LBracket"),
         }
     }
 }
@@ -51,6 +59,10 @@ impl fmt::Display for TokenType {
             TokenType::LineBreak => write!(f, "TokenType::LineBreak"),
             TokenType::OrderedItem => write!(f, "TokenType::OrderedItem"),
             TokenType::Item => write!(f, "TokenType::Item"),
+            TokenType::LParen => write!(f, "TokenType::LParen"),
+            TokenType::RParen => write!(f, "TokenType::RParen"),
+            TokenType::RBracket => write!(f, "TokenType::RBracket"),
+            TokenType::LBracket => write!(f, "TokenType::LBracket"),
         }
     }
 }
