@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::env::current_dir;
 use std::fs::{self, File};
 use std::io::{Read, BufReader, BufWriter, Write};
-use std::path::PathBuf;
+use std::path::{PathBuf, Path};
 
 use crate::generators::{MergePage, HtmlGenerator};
 use crate::parsers::markdown::Lexer;
@@ -21,6 +21,8 @@ fn build_internal(base_dir: &PathBuf) -> HashMap<PathBuf, String> {
     if !public_dir_path.is_dir() {
         fs::create_dir(&public_dir_path).expect("ERROR: Couldn't create public dir");
     }
+
+    copy_resources_to_public(&base_dir.join("resources"), &public_dir_path);
 
     let maybe_base_template = layouts_map.remove("_base.html");
     let keys = layouts_map.clone().into_keys().collect::<Vec<String>>();
@@ -64,6 +66,24 @@ fn build_internal(base_dir: &PathBuf) -> HashMap<PathBuf, String> {
     return HashMap::new();
 }
 
+fn copy_resources_to_public(resources_dir: &PathBuf, public_dir: &PathBuf) {
+    if !Path::new(public_dir).exists() {
+        fs::create_dir_all(public_dir).expect("ERROR: Couldn't create public dir");
+    }
+    for entry in fs::read_dir(resources_dir).expect("ERROR: Couldn't read resources dir") {
+        match entry {
+            Ok(entry) => {
+                let orig_path = entry.path();
+                let new_path = public_dir.join(&orig_path.file_name().expect("ERROR: Couldn't get file_name"));
+                fs::copy(orig_path, new_path).expect("ERROR: couldn't copy file");
+            },
+            Err(e) => {
+                eprintln!("ERROR: Couldn't read resource: {e}")
+            }
+        }
+    }
+}
+
 fn merge_base_with_layout(base_tpl: &Option<String>, content_layout: &String) -> String {
     let layout = match base_tpl {
         Some(base) => {
@@ -104,7 +124,7 @@ fn build_menu_html(pages: Vec<String>) -> String {
 fn get_content_rec(dir: &PathBuf, base_dir: &PathBuf) -> HashMap<String, String> {
     let mut map = HashMap::new();
     for path in fs::read_dir(&dir).expect("ERROR: Couldn't read content_dir_path") {
-        let path = path.unwrap().path();
+        let path = path.expect("ERROR: couldn't get path").path();
         if path.is_dir(){
             let new_map = get_content_rec(&path.to_path_buf(), base_dir);
             map.extend(new_map);
@@ -162,6 +182,20 @@ mod tests {
     use crate::commands::build::*;
 
     #[test]
+    fn test_copy_resources() {
+        let base_dir_path = create_test_site();
+
+        let public_dir_path = base_dir_path.join("public");
+
+        copy_resources_to_public(&base_dir_path.join("resources"), &public_dir_path);
+
+        assert_eq!(Path::new(&public_dir_path.join("style.css")).exists(), true, "style.css doesn't exist");
+        assert_eq!(Path::new(&public_dir_path.join("script.js")).exists(), true, "script.js doesn't exist");
+
+        assert_ok!(fs::remove_dir_all(base_dir_path.as_path()));
+    }
+
+    #[test]
     fn test_build_menu() {
         let menu_items: Vec<String> = vec!["index.html", "second-page.html", "posts.html"].iter().map(|x| x.to_string()).collect();
         let expected = "<ul><li><a href=\"/index.html\">index</a></li><li><a href=\"/second-page.html\">second-page</a></li><li><a href=\"/posts.html\">posts</a></li></ul>";
@@ -169,6 +203,7 @@ mod tests {
         let result = build_menu_html(menu_items);
         assert_eq!(result, expected);
     }
+
     #[test]
     fn test_build_internal() {
         let base_dir_path = create_test_site();
@@ -194,6 +229,7 @@ mod tests {
         assert_some!(content_map.get("posts/post-1.md"), "Couldn't get posts/post-1.md");
         assert_some!(content_map.get("posts/post-2.md"), "Couldn't get posts/post-2.md");
     }
+
     #[test]
     fn test_get_layouts() {
         let base_dir = create_test_site();
@@ -222,7 +258,6 @@ mod tests {
         buf_writer = BufWriter::new(base_layout_file);
         buf_writer.write(BASE.as_ref()).expect("ERROR: couldn't write to content file");
 
-
         let index_content_file = File::create(base_dir.join("content").join("index.md")).expect("ERROR: couldn't create index content file");
         buf_writer = BufWriter::new(index_content_file);
         buf_writer.write(INDEX_CONTENT.as_ref()).expect("ERROR: couldn't write to content file");
@@ -241,9 +276,11 @@ mod tests {
         buf_writer = BufWriter::new(posts_file_2);
         buf_writer.write(POST_2_CONTENT.as_ref()).expect("ERROR: couldn't write to content file");
 
+        File::create(base_dir.join("resources").join("style.css")).expect("ERROR: Couldn't create css file");
+        File::create(base_dir.join("resources").join("script.js")).expect("ERROR: Couldn't create js file");
+
         return base_dir;
     }
-
 
     #[test]
     fn test_strip_base_path_with_subdirectory() {
@@ -254,6 +291,7 @@ mod tests {
 
         assert_eq!(res.as_path(), Path::new("subdir/index.txt"));
     }
+
     #[test]
     fn test_strip_base_path() {
         let base_path = PathBuf::from("/home/user/website/");
@@ -263,8 +301,6 @@ mod tests {
 
         assert_eq!(res.as_path(), Path::new("index.txt"));
     }
-
-
 
     static INDEX_CONTENT: &str = "\
         # Index\n\
