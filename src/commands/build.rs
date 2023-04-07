@@ -175,12 +175,16 @@ mod tests {
 
     use claim::{assert_ok, assert_some};
 
-    use crate::commands::test_utils::create_test_site;
+    use crate::commands::test_utils::{create_test_site, SiteBuilder};
     use crate::commands::build::*;
 
     #[test]
     fn test_copy_resources() {
-        let base_dir_path = create_test_site();
+        let _site_builder = SiteBuilder::new()
+            .with_resource("style", "css", "")
+            .with_resource("script", "js", "");
+
+        let base_dir_path = _site_builder.get_path();
 
         let public_dir_path = base_dir_path.join("public");
 
@@ -274,7 +278,10 @@ pub mod test_utils {
     }
 
     impl SiteBuilder {
-        pub fn new(base_dir_path: PathBuf) -> Self {
+        pub fn new() -> Self {
+            let uuid = Uuid::new_v4().to_string();
+            let base_dir_path = temp_dir().join("rust").join(uuid);
+            fs::create_dir_all(base_dir_path.as_path()).expect("ERROR: couldn't create base_dir");
             let dirs = vec!["content", "layouts", "resources"];
             for dir in dirs {
                 fs::create_dir_all(base_dir_path.join(dir)).expect("ERROR: Couldn't create dir");
@@ -345,11 +352,7 @@ pub mod test_utils {
     }
 
     pub fn create_test_site() -> PathBuf {
-        let uuid = Uuid::new_v4().to_string();
-        let base_dir = temp_dir().join("rust").join(uuid);
-        fs::create_dir_all(base_dir.as_path()).expect("ERROR: couldn't create base_dir");
-
-        let _site_builder = SiteBuilder::new(base_dir.clone())
+        let _site_builder = SiteBuilder::new()
             .with_base_layout("base", BASE)
             .with_page_with_content("index", INDEX_LAYOUT, INDEX_CONTENT)
             .with_page_with_nested_content("posts", INDEX_LAYOUT, PathBuf::from("posts"), "post-1", POST_1_CONTENT)
@@ -359,22 +362,22 @@ pub mod test_utils {
 
         return _site_builder.get_path();
     }
-    static INDEX_CONTENT: &str = "\
+    pub static INDEX_CONTENT: &str = "\
         # Index\n\
         \n\
         Some content\n\
         ";
-    static POST_1_CONTENT: &str = "\
+    pub static POST_1_CONTENT: &str = "\
         # Post 1\n\
         \n\
         Post content\n\
         ";
-    static POST_2_CONTENT: &str = "\
+    pub static POST_2_CONTENT: &str = "\
         # Post 2\n\
         \n\
         Post content\n\
         ";
-    static BASE: &str = r#"
+    pub static BASE: &str = r#"
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -387,7 +390,7 @@ pub mod test_utils {
         </body>
         </html>
         "#;
-    static INDEX_LAYOUT: &str = r#"
+    pub static INDEX_LAYOUT: &str = r#"
         {content}
         "#;
 }
