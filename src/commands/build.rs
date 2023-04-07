@@ -175,7 +175,7 @@ mod tests {
 
     use claim::{assert_ok, assert_some};
 
-    use crate::commands::test_utils::{create_test_site, SiteBuilder, BASE, INDEX_LAYOUT, INDEX_CONTENT, POST_1_CONTENT, POST_2_CONTENT};
+    use crate::commands::test_utils::*;
     use crate::commands::build::*;
 
     #[test]
@@ -353,7 +353,7 @@ pub mod test_utils {
 
         pub fn with_page_with_nested_content(self, page_name: &str, page_layout: &str, page_content_path: PathBuf, page_content_name: &str, page_content: &str) -> Self {
             fs::create_dir_all(self.base_dir_path.join("content").join(&page_content_path)).expect("ERROR: Couldn't create page_content_path");
-            //
+
             //layout
             let layout_file_name = format!("{}.html", page_name);
             let layout_file = File::create(self.base_dir_path.join("layouts").join(layout_file_name)).expect("ERROR: couldn't create layout file");
@@ -377,17 +377,6 @@ pub mod test_utils {
         }
     }
 
-    pub fn create_test_site() -> PathBuf {
-        let _site_builder = SiteBuilder::new()
-            .with_base_layout("base", BASE)
-            .with_page_with_content("index", INDEX_LAYOUT, INDEX_CONTENT)
-            .with_page_with_nested_content("posts", INDEX_LAYOUT, PathBuf::from("posts"), "post-1", POST_1_CONTENT)
-            .with_nested_content(PathBuf::from("posts"), "post-2", POST_2_CONTENT)
-            .with_resource("style", "css", "")
-            .with_resource("script", "js", "");
-
-        return _site_builder.get_path();
-    }
     pub static INDEX_CONTENT: &str = "\
         # Index\n\
         \n\
