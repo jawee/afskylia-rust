@@ -175,16 +175,16 @@ mod tests {
 
     use claim::{assert_ok, assert_some};
 
-    use crate::commands::test_utils::{create_test_site, SiteBuilder};
+    use crate::commands::test_utils::{create_test_site, SiteBuilder, BASE, INDEX_LAYOUT, INDEX_CONTENT, POST_1_CONTENT, POST_2_CONTENT};
     use crate::commands::build::*;
 
     #[test]
     fn test_copy_resources() {
-        let _site_builder = SiteBuilder::new()
+        let site_builder = SiteBuilder::new()
             .with_resource("style", "css", "")
             .with_resource("script", "js", "");
 
-        let base_dir_path = _site_builder.get_path();
+        let base_dir_path = site_builder.get_path();
 
         let public_dir_path = base_dir_path.join("public");
 
@@ -207,7 +207,11 @@ mod tests {
 
     #[test]
     fn test_build_internal() {
-        let base_dir_path = create_test_site();
+        let site_builder = SiteBuilder::new()
+            .with_base_layout("base", BASE)
+            .with_page_with_content("index", INDEX_LAYOUT, INDEX_CONTENT);
+        let base_dir_path = site_builder.get_path();
+
         build_internal(&base_dir_path);
 
         let public_dir_path = base_dir_path.join(PUBLIC_DIR_PATH);
@@ -221,22 +225,46 @@ mod tests {
     }
 
     #[test]
-    fn test_get_content() {
-        let base_dir = create_test_site();
-        let content_map = get_content(&base_dir);
+    fn test_get_content_nested() {
+        let site_builder = SiteBuilder::new()
+            .with_base_layout("base", BASE)
+            .with_page_with_content("index", INDEX_LAYOUT, INDEX_CONTENT)
+            .with_page_with_nested_content("posts", INDEX_LAYOUT, PathBuf::from("posts"), "post-1", POST_1_CONTENT)
+            .with_nested_content(PathBuf::from("posts"), "post-2", POST_2_CONTENT);
+        let base_dir_path = site_builder.get_path();
 
-        assert_ok!(fs::remove_dir_all(base_dir.as_path()));
+        let content_map = get_content(&base_dir_path);
+
+        assert_ok!(fs::remove_dir_all(base_dir_path.as_path()));
         assert_some!(content_map.get("index.md"), "Couldn't get index.md");
         assert_some!(content_map.get("posts/post-1.md"), "Couldn't get posts/post-1.md");
         assert_some!(content_map.get("posts/post-2.md"), "Couldn't get posts/post-2.md");
     }
 
     #[test]
-    fn test_get_layouts() {
-        let base_dir = create_test_site();
-        let layout_map = get_layouts(&base_dir);
+    fn test_get_content() {
+        let site_builder = SiteBuilder::new()
+            .with_base_layout("base", BASE)
+            .with_page_with_content("index", INDEX_LAYOUT, INDEX_CONTENT);
+        let base_dir_path = site_builder.get_path();
 
-        assert_ok!(fs::remove_dir_all(base_dir.as_path()));
+        let content_map = get_content(&base_dir_path);
+
+        assert_ok!(fs::remove_dir_all(base_dir_path.as_path()));
+        assert_some!(content_map.get("index.md"), "Couldn't get index.md");
+    }
+
+    #[test]
+    fn test_get_layouts() {
+        let site_builder = SiteBuilder::new()
+            .with_base_layout("base", BASE)
+            .with_page_with_content("index", INDEX_LAYOUT, INDEX_CONTENT)
+            .with_page_with_nested_content("posts", INDEX_LAYOUT, PathBuf::from("posts"), "post-1", POST_1_CONTENT);
+
+        let base_dir_path = site_builder.get_path();
+        let layout_map = get_layouts(&base_dir_path);
+
+        assert_ok!(fs::remove_dir_all(base_dir_path.as_path()));
         assert_some!(layout_map.get("index.html"));
         assert_some!(layout_map.get("posts.html"));
     }
@@ -261,8 +289,6 @@ mod tests {
 
         assert_eq!(res.as_path(), Path::new("index.txt"));
     }
-
-
 }
 
 #[cfg(test)]
