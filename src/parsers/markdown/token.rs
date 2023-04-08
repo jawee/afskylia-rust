@@ -15,6 +15,12 @@ impl Token {
     }
 }
 
+impl fmt::Display for Token {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} '{}'", self.token_type, self.literal)
+    }
+}
+
 
 #[derive(PartialEq, Clone, Copy)]
 pub enum TokenType {

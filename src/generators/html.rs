@@ -68,9 +68,13 @@ impl HtmlGenerator {
                         break;
                     }
                     
+
                     if next_token.token_type == TokenType::RBracket {
                         str_vec.push(self.generate_link_html());
-                    } else {
+                    } else if next_token.token_type == TokenType::Bang {
+                        str_vec.push(self.generate_image_html());
+                    }
+                    else {
                         str_vec.push(next_token.literal);
                     }
                     next_token = self.lexer.next_token();
@@ -101,49 +105,11 @@ impl HtmlGenerator {
                 str_vec.join("")
             },
             TokenType::RBracket => {
-                let mut i = 1;
-                let mut peek_token = self.lexer.peek_nth_token(i);
-                let mut is_link = false;
-                loop {
-                    if peek_token.token_type == TokenType::EOF {
-                        break;
-                    }
-
-                    if peek_token.token_type == TokenType::LineBreak {
-                        break;
-                    }
-
-                    if peek_token.token_type == TokenType::LBracket && self.lexer.peek_nth_token(i+1).token_type == TokenType::RParen {
-                        //this is an actual link
-                        is_link = true;
-                        break;
-                    }
-
-                    i += 1;
-                    peek_token = self.lexer.peek_nth_token(i);
-                }
-
-                let mut res = String::default();
-                if is_link {
-                    let mut next_token = self.lexer.next_token();
-                    let mut title = String::default();
-                    while next_token.token_type != TokenType::LBracket {
-                        title.push_str(&next_token.literal);
-                        next_token = self.lexer.next_token();
-                    }
-
-                    let mut href = String::default();
-                    self.lexer.next_token(); // (
-                    next_token = self.lexer.next_token();
-                    while next_token.token_type != TokenType::LParen {
-                        href.push_str(&next_token.literal);
-                        next_token = self.lexer.next_token();
-                    }
-                    res = format!("<a href=\"{href}\">{title}</a>")
-                } 
-
-                res
+                self.generate_link_html()
             },
+            TokenType::Bang => {
+                self.generate_image_html()
+            }
             TokenType::LineBreak => String::from(""),
             _ => {
                 unreachable!("Hit _ in html.rs, shouldn't happen");
@@ -196,6 +162,59 @@ impl HtmlGenerator {
 
         return res;
     }
+
+    fn generate_image_html(&mut self) -> String {
+        let mut i = 1;
+        let mut peek_token = self.lexer.peek_nth_token(i);
+        let mut is_image = false;
+        loop {
+            if peek_token.token_type == TokenType::EOF {
+                break;
+            }
+
+            if peek_token.token_type == TokenType::LineBreak {
+                break;
+            }
+
+            if peek_token.token_type == TokenType::LBracket && self.lexer.peek_nth_token(i+1).token_type == TokenType::RParen {
+                //this is an actual link
+                is_image = true;
+                break;
+            }
+
+            i += 1;
+            peek_token = self.lexer.peek_nth_token(i);
+        }
+
+        let mut res = String::from("!");
+        if is_image {
+            self.lexer.next_token(); // [
+            let mut next_token = self.lexer.next_token();
+            let mut alt_text = String::default();
+            while next_token.token_type != TokenType::LBracket {
+                alt_text.push_str(&next_token.literal);
+                next_token = self.lexer.next_token();
+            }
+
+            let mut href = String::default();
+            println!("skip char: {}", self.lexer.peek_next_token().literal);
+            self.lexer.next_token(); // (
+            next_token = self.lexer.next_token();
+            while next_token.token_type == TokenType::Letter && next_token.literal != " " {
+                href.push_str(&next_token.literal);
+                next_token = self.lexer.next_token();
+            }
+            let mut title = String::default();
+            next_token = self.lexer.next_token(); // space
+            while next_token.token_type != TokenType::LParen {
+                title.push_str(&next_token.literal);
+                next_token = self.lexer.next_token();
+            }
+            res = format!("<img src=\"{href}\" alt=\"{alt_text}\" title=\"{title}\">");
+        } 
+
+        return res;
+    }
 }
 
 #[cfg(test)]
@@ -203,6 +222,31 @@ mod tests {
     use crate::parsers::markdown::Lexer;
 
     use super::HtmlGenerator;
+
+    #[test]
+    fn get_image_in_paragraph() {
+        let input = "a ![a](b c) b";
+        let expected = "<p>a <img src=\"b\" alt=\"a\" title=\"c\"> b</p>";
+
+        let lexer = Lexer::new(input).expect("ERROR: Couldn't create lexer");
+
+        let mut html_generator = HtmlGenerator::new(lexer);
+        let result = html_generator.get_html().expect("ERROR: Couldn't get html");
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn get_image() {
+        let input = "![a](b c)";
+
+        let expected = "<img src=\"b\" alt=\"a\" title=\"c\">";
+
+        let lexer = Lexer::new(input).expect("ERROR: Couldn't create lexer");
+
+        let mut html_generator = HtmlGenerator::new(lexer);
+        let result = html_generator.get_html().expect("ERROR: Couldn't get html");
+        assert_eq!(result, expected);
+    }
 
     #[test]
     fn get_link_in_paragraph() {
