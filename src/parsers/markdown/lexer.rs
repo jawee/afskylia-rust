@@ -36,18 +36,15 @@ impl Lexer {
         let tok = match nth_ch {
             Some('#') => Token::new(TokenType::Heading, String::from("")),
             Some('\n') => Token::new(TokenType::LineBreak, String::from("")),
+            Some('[') => Token::new(TokenType::RBracket, String::from('[')),
+            Some(']') => Token::new(TokenType::LBracket, String::from(']')),
+            Some('(') => Token::new(TokenType::RParen, String::from('(')),
+            Some(')') => Token::new(TokenType::LParen, String::from(')')),
+            Some('!') => Token::new(TokenType::Bang, String::default()),
             Some(t) => {
                 let prev = self.input.chars().nth(self.read_position+n-1);
                 if t.is_digit(10) && (prev.is_none() || prev.unwrap() == '\n') {
                     Token::new(TokenType::OrderedItem, String::from(""))
-                } else if t == '[' {
-                    Token::new(TokenType::RBracket, String::from(t))
-                } else if t == ']' {
-                    Token::new(TokenType::LBracket, String::from(t))
-                } else if t == '(' {
-                    Token::new(TokenType::RParen, String::from(t))
-                } else if t == ')' {
-                    Token::new(TokenType::LParen, String::from(t))
                 } else {
                     Token::new(TokenType::Letter, String::from(t))
                 }
@@ -76,20 +73,17 @@ impl Lexer {
                 return Token::new(TokenType::Letter, String::from("#"));
             },
             Some('\n') => Token::new(TokenType::LineBreak, String::from("")),
+            Some('!') => Token::new(TokenType::Bang, String::from('!')),
+            Some('[') => Token::new(TokenType::RBracket, String::from('[')),
+            Some(']') => Token::new(TokenType::LBracket, String::from(']')),
+            Some('(') => Token::new(TokenType::RParen, String::from('(')),
+            Some(')') => Token::new(TokenType::LParen, String::from(')')),
             Some(t) => {
                 if t.is_digit(10) && (self.prev.is_none() || self.prev.unwrap() == '\n') {
                     //TODO: Support more than 1 digit numbers
                     self.read_char(); //to skip the dot. Which means we can only do 1-9 
                     self.read_char(); //skip the whitespace
                     Token::new(TokenType::OrderedItem, String::from(""))
-                } else if t == '[' {
-                    Token::new(TokenType::RBracket, String::from(t))
-                } else if t == ']' {
-                    Token::new(TokenType::LBracket, String::from(t))
-                } else if t == '(' {
-                    Token::new(TokenType::RParen, String::from(t))
-                } else if t == ')' {
-                    Token::new(TokenType::LParen, String::from(t))
                 } else {
                     Token::new(TokenType::Letter, String::from(t))
                 }
@@ -115,6 +109,23 @@ mod tests {
 
     use super::Lexer;
     use claim::{assert_ok, assert_err, assert_matches};
+
+    #[test]
+    fn image() {
+        let input = "![a](b c)";
+        let expected = vec![
+            TokenType::Bang, TokenType::RBracket, TokenType::Letter,
+            TokenType::LBracket, TokenType::RParen, TokenType::Letter,
+            TokenType::Letter, TokenType::Letter, TokenType::LParen, 
+            TokenType::EOF];
+
+        let mut lexer = Lexer::new(input).expect("ERROR: Couldn't initialize lexer");
+        for e in expected {
+            let tok = lexer.next_token();
+            println!("actual: {} == expected: {}", tok.token_type, e);
+            assert_eq!(tok.token_type, e);
+        }
+    }
 
     #[test]
     fn link_in_paragraph() {
