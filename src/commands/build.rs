@@ -32,7 +32,7 @@ fn build_internal(base_dir: &PathBuf) -> HashMap<PathBuf, String> {
         let file_name = &key[..=key.len()-6];
         let content_key = &format!("{file_name}.md");
         let markdown_content = match content_map.get(content_key) {
-            Some(c) => c.to_string(),
+            Some(c) => c.strip_metadata().to_string(),
             None => {
                 //TODO: need to handle this better. But for now just merge all posts into a
                 //long markdown string and generate html
@@ -40,11 +40,11 @@ fn build_internal(base_dir: &PathBuf) -> HashMap<PathBuf, String> {
                 let mut str = String::new();
                 for key in keys {
                     let cont = match content_map.get(key) {
-                        Some(c) => c,
-                        None => ""
+                        Some(c) => c.strip_metadata(),
+                        None => String::default()
                     };
 
-                    str.push_str(cont);
+                    str.push_str(&cont);
                     str.push_str("\n\n");
                 }
                 str
@@ -64,6 +64,29 @@ fn build_internal(base_dir: &PathBuf) -> HashMap<PathBuf, String> {
     }
 
     return HashMap::new();
+}
+
+trait StringExt {
+    fn strip_metadata(&self) -> String;
+}
+impl StringExt for String {
+    fn strip_metadata(&self) -> String {
+        let lines = self.lines();
+        let mut in_metadata = false;
+
+        let mut line_vec = Vec::default();
+        for line in lines {
+            if line.starts_with("---") {
+                in_metadata = !in_metadata;
+                continue;
+            }
+
+            if !in_metadata {
+                line_vec.push(line);
+            }
+        }
+        return line_vec.join("\n");
+    }
 }
 
 fn copy_resources_to_public(resources_dir: &PathBuf, public_dir: &PathBuf) {
@@ -179,6 +202,13 @@ mod tests {
     use crate::commands::build::*;
 
     #[test]
+    fn strip_metadata() {
+        let input = "---\n---\n# Hello".to_string();
+        let result = input.strip_metadata();
+
+        assert_eq!(result, "# Hello".to_string());
+    }
+    #[test]
     fn build_content_with_link_renders_a_tag() {
         let page_content = "# Index\n\
                             [link](https://google.com)";
@@ -192,6 +222,8 @@ mod tests {
 
         let public_dir_path = base_dir_path.join(PUBLIC_DIR_PATH);
         let index_file_str = fs::read_to_string(public_dir_path.join("index.html")).expect("ERROR: Couldn't read index.html");
+
+        println!("{index_file_str}");
 
         assert_ok!(fs::remove_dir_all(base_dir_path.as_path()));
         assert_eq!(index_file_str.contains("<a href=\"https://google.com\">link</a>"), true, "Does not contain link");
