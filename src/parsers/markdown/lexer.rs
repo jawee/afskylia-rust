@@ -111,6 +111,24 @@ mod tests {
     use claim::{assert_ok, assert_err, assert_matches};
 
     #[test]
+    fn image_in_paragraph() {
+        let input = "a ![a](b c) b";
+        let expected = vec![
+            TokenType::Letter, TokenType::Letter,
+            TokenType::Bang, TokenType::RBracket, TokenType::Letter,
+            TokenType::LBracket, TokenType::RParen, TokenType::Letter,
+            TokenType::Letter, TokenType::Letter, TokenType::LParen, 
+            TokenType::Letter, TokenType::Letter, TokenType::EOF];
+
+        let mut lexer = Lexer::new(input).expect("ERROR: Couldn't initialize lexer");
+        for e in expected {
+            let tok = lexer.next_token();
+            println!("actual: {} == expected: {}", tok.token_type, e);
+            assert_eq!(tok.token_type, e);
+        }
+    }
+
+    #[test]
     fn image() {
         let input = "![a](b c)";
         let expected = vec![
