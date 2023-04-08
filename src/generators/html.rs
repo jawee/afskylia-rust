@@ -197,20 +197,26 @@ impl HtmlGenerator {
             }
 
             let mut href = String::default();
-            println!("skip char: {}", self.lexer.peek_next_token().literal);
             self.lexer.next_token(); // (
             next_token = self.lexer.next_token();
-            while next_token.token_type == TokenType::Letter && next_token.literal != " " {
+            while next_token.token_type == TokenType::Letter && (next_token.literal != " " && next_token.literal != ")") {
                 href.push_str(&next_token.literal);
                 next_token = self.lexer.next_token();
             }
             let mut title = String::default();
-            next_token = self.lexer.next_token(); // space
-            while next_token.token_type != TokenType::LParen {
+            if next_token.literal == " " {
+                next_token = self.lexer.next_token(); // space
+            }
+            println!("next_token: {}", next_token);
+            while next_token.token_type != TokenType::LParen && next_token.token_type != TokenType::EOF {
                 title.push_str(&next_token.literal);
                 next_token = self.lexer.next_token();
             }
-            res = format!("<img src=\"{href}\" alt=\"{alt_text}\" title=\"{title}\">");
+            if title.is_empty() {
+                res = format!("<img src=\"{href}\" alt=\"{alt_text}\">");
+            } else {
+                res = format!("<img src=\"{href}\" alt=\"{alt_text}\" title=\"{title}\">");
+            }
         } 
 
         return res;
@@ -222,6 +228,31 @@ mod tests {
     use crate::parsers::markdown::Lexer;
 
     use super::HtmlGenerator;
+
+    #[test]
+    fn get_image_without_title_in_paragraph() {
+        let input = "a ![a](b) b";
+        let expected = "<p>a <img src=\"b\" alt=\"a\"> b</p>";
+
+        let lexer = Lexer::new(input).expect("ERROR: Couldn't create lexer");
+
+        let mut html_generator = HtmlGenerator::new(lexer);
+        let result = html_generator.get_html().expect("ERROR: Couldn't get html");
+        assert_eq!(result, expected);
+    }
+    
+    #[test]
+    fn get_image_without_title() {
+        let input = "![a](b)";
+
+        let expected = "<img src=\"b\" alt=\"a\">";
+
+        let lexer = Lexer::new(input).expect("ERROR: Couldn't create lexer");
+
+        let mut html_generator = HtmlGenerator::new(lexer);
+        let result = html_generator.get_html().expect("ERROR: Couldn't get html");
+        assert_eq!(result, expected);
+    }
 
     #[test]
     fn get_image_in_paragraph() {
