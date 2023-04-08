@@ -203,11 +203,11 @@ impl HtmlGenerator {
                 href.push_str(&next_token.literal);
                 next_token = self.lexer.next_token();
             }
-            let mut title = String::default();
             if next_token.literal == " " {
                 next_token = self.lexer.next_token(); // space
             }
-            println!("next_token: {}", next_token);
+
+            let mut title = String::default();
             while next_token.token_type != TokenType::LParen && next_token.token_type != TokenType::EOF {
                 title.push_str(&next_token.literal);
                 next_token = self.lexer.next_token();
