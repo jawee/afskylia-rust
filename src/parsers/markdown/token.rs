@@ -15,6 +15,12 @@ impl Token {
     }
 }
 
+impl fmt::Display for Token {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} '{}'", self.token_type, self.literal)
+    }
+}
+
 
 #[derive(PartialEq, Clone, Copy)]
 pub enum TokenType {
@@ -29,6 +35,7 @@ pub enum TokenType {
     RParen,
     RBracket,
     LBracket,
+    Bang,
 }
 
 impl fmt::Debug for TokenType {
@@ -45,6 +52,7 @@ impl fmt::Debug for TokenType {
             TokenType::RParen => write!(f, "TokenType::RParen"),
             TokenType::RBracket => write!(f, "TokenType::RBracket"),
             TokenType::LBracket => write!(f, "TokenType::LBracket"),
+            TokenType::Bang => write!(f, "TokenType::Bang"),
         }
     }
 }
@@ -63,6 +71,7 @@ impl fmt::Display for TokenType {
             TokenType::RParen => write!(f, "TokenType::RParen"),
             TokenType::RBracket => write!(f, "TokenType::RBracket"),
             TokenType::LBracket => write!(f, "TokenType::LBracket"),
+            TokenType::Bang => write!(f, "TokenType::Bang"),
         }
     }
 }
