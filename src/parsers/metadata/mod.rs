@@ -106,6 +106,16 @@ mod mydatetimetests {
         let result = date_time.to_string();
         assert_eq!(result, expected);
     }
+
+    #[test]
+    fn convert_to_string_3() {
+        let input: usize = 0;
+        let expected = "1970-01-01T00:00:00";
+
+        let date_time = MyDateTime::new(input);
+        let result = date_time.to_string();
+        assert_eq!(result, expected);
+    }
 }
 impl Default for Metadata {
     fn default() -> Self {
