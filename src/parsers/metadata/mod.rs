@@ -36,6 +36,7 @@ impl MyDateTime {
     fn parse_timestamp(timestamp: usize) -> HashMap<String, usize> {
         let mut map = HashMap::default();
         let days_since_1970 = timestamp / 86400;
+        println!("days since 1970 {}", days_since_1970);
 
         let second = timestamp % 60;
         let minute = (timestamp / 60) % 60;
@@ -45,9 +46,11 @@ impl MyDateTime {
         let years = (day as f64 / 365.25) as usize;
         let year = 1970 + years;
 
-        let q_years = days_since_1970 / 1461;
+        let leap_year_count = days_since_1970 / 1461;
+        println!("q_years {}", leap_year_count);
 
-        let mut days_this_year = (days_since_1970 - (q_years * 1461)) % 365;
+        let mut days_this_year = (days_since_1970 - (leap_year_count * 1461)) % 365;
+        println!("days this year {}", days_this_year);
 
         let mut leap_year = false;
         if year % 4 == 2 {
@@ -88,34 +91,44 @@ mod mydatetimetests {
     use super::MyDateTime;
 
     #[test]
-    fn convert_to_string() {
-        let input: usize = 1681105217;
-        let expected = "2023-04-10T05:40:17";
+    fn mydatetime() {
+        let inputs = [1681105217,1313905026, 0];
+        let expected = ["2023-04-10T05:40:17", "2011-08-21T05:37:06", "1970-01-01T00:00:00"];
 
-        let date_time = MyDateTime::new(input);
-        let result = date_time.to_string();
-        assert_eq!(result, expected);
+        for (i, _) in inputs.iter().enumerate() {
+            let result = MyDateTime::new(inputs[i]).to_string();
+            assert_eq!(result, expected[i]);
+        }
     }
+    // #[test]
+    // fn convert_to_string() {
+    //     let input: usize = 1681105217;
+    //     let expected = "2023-04-10T05:40:17";
+    //
+    //     let date_time = MyDateTime::new(input);
+    //     let result = date_time.to_string();
+    //     assert_eq!(result, expected);
+    // }
+    //
+    // #[test]
+    // fn convert_to_string_2() {
+    //     let input: usize = 1313905026;
+    //     let expected = "2011-08-21T05:37:06";
+    //
+    //     let date_time = MyDateTime::new(input);
+    //     let result = date_time.to_string();
+    //     assert_eq!(result, expected);
+    // }
 
-    #[test]
-    fn convert_to_string_2() {
-        let input: usize = 1313905026;
-        let expected = "2011-08-21T05:37:06";
-
-        let date_time = MyDateTime::new(input);
-        let result = date_time.to_string();
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn convert_to_string_3() {
-        let input: usize = 0;
-        let expected = "1970-01-01T00:00:00";
-
-        let date_time = MyDateTime::new(input);
-        let result = date_time.to_string();
-        assert_eq!(result, expected);
-    }
+    // #[test]
+    // fn convert_to_string_3() {
+    //     let input: usize = 0;
+    //     let expected = "1970-01-01T00:00:00";
+    //
+    //     let date_time = MyDateTime::new(input);
+    //     let result = date_time.to_string();
+    //     assert_eq!(result, expected);
+    // }
 }
 impl Default for Metadata {
     fn default() -> Self {
