@@ -36,7 +36,6 @@ impl MyDateTime {
     fn parse_timestamp(timestamp: usize) -> HashMap<String, usize> {
         let mut map = HashMap::default();
         let days_since_1970 = timestamp / 86400;
-        println!("days since 1970 {}", days_since_1970);
 
         let second = timestamp % 60;
         let minute = (timestamp / 60) % 60;
@@ -45,18 +44,13 @@ impl MyDateTime {
 
         let years = (day as f64 / 365.25) as usize;
         let year = 1970 + years;
-        println!("Year: {}", year);
 
         let leap_year_count = days_since_1970 / 1461;
-        println!("q_years {}", leap_year_count);
 
         let mut days_this_year = (days_since_1970 - (leap_year_count * 1461)) % 365;
-        println!("days this year {}", days_this_year);
 
         let mut leap_year = false;
-        println!("year % 4 == {}", year % 4);
         if year % 4 == 0 && year % 100 == 0 && year % 400 == 0 {
-            println!("leap year");
             leap_year = true;
             days_this_year += 1;
         }
@@ -70,10 +64,8 @@ impl MyDateTime {
             }
             days_this_year -= days_this_month;
             month += 1;
-            println!("removing {} from days_this_year. Days left: {}", days_this_month, days_this_year);
         }
         let day = days_this_year+1;
-        println!("day of the month {}", day);
         map.insert(String::from("hour"), hour);
         map.insert(String::from("minute"), minute);
         map.insert(String::from("second"), second);
