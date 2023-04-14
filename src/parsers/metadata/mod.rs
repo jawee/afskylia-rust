@@ -82,9 +82,37 @@ impl Display for MyDateTime {
     }
 }
 
+impl From<String> for MyDateTime {
+    fn from(value: String) -> Self {
+        todo!()
+    }
+}
+
+impl From<&str> for MyDateTime {
+    fn from(value: &str) -> Self {
+        todo!()
+    }
+}
+
 #[cfg(test)]
 mod mydatetimetests {
     use super::MyDateTime;
+
+    #[test]
+    fn str_to_datetime() {
+        let input = "1970-01-01T00:00:00";
+        let result = MyDateTime::from(input);
+
+        assert_eq!(result.to_string(), input);
+    }
+
+    #[test]
+    fn string_to_datetime() {
+        let input = String::from("1970-01-01T00:00:00");
+        let result = MyDateTime::from(input.clone());
+
+        assert_eq!(result.to_string(), input);
+    }
 
     #[test]
     fn mydatetime() {
