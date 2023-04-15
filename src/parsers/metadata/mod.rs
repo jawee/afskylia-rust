@@ -78,7 +78,63 @@ impl MyDateTime {
 
 impl Display for MyDateTime {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}", self.year, self.month, self.day, self.hour, self.minute, self.second)
+        write!(f, "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}", self.year, self.month,
+               self.day, self.hour, self.minute, self.second)
+    }
+}
+
+#[derive(Debug)]
+struct DateTimeParser {
+    input: String,
+    position: usize,
+    read_position: usize,
+    ch: Option<char>,
+    prev: Option<char>,
+}
+
+impl DateTimeParser {
+    fn new(input: &str) -> Result<DateTimeParser, String> {
+        if input.is_empty() {
+            return Err("Input is required".to_string());
+        }
+
+        return Ok(Self::new_lexer_from_input(input));
+    }
+
+    fn new_lexer_from_input(input: &str) -> DateTimeParser {
+        let lexer = DateTimeParser {
+            input: input.to_string(),
+            position: 0,
+            read_position: 0,
+            ch: None,
+            prev: None,
+        };
+
+        return lexer;
+    }
+
+    fn read_char(&mut self) {
+        self.prev = self.ch;
+        self.ch = self.input.chars().nth(self.read_position);
+
+        self.position = self.read_position;
+        self.read_position += 1;
+    }
+
+    fn get_next_number(&mut self) -> Result<usize, String> {
+        let mut result_string = String::default();
+        self.read_char();
+
+        while let Some(i) = self.ch {
+            if !i.is_numeric() {
+                break;
+            }
+            result_string.push(i);
+            self.read_char();
+        }
+
+        let res: usize = result_string.parse().expect("ERROR: Couldn't parse result_string to usize");
+        return Ok(res);
     }
 }
 
@@ -90,6 +146,20 @@ impl From<String> for MyDateTime {
 
 impl From<&str> for MyDateTime {
     fn from(value: &str) -> Self {
+        let mut parser = DateTimeParser::new(value).expect("ERROR: Couldn't generate a new datetimeparser");
+        let year = parser.get_next_number().expect("ERROR: Couldn't get year");
+        let month = parser.get_next_number().expect("ERROR: Couldn't get month");
+        let day = parser.get_next_number().expect("ERROR: Couldn't get day");
+        let hour = parser.get_next_number().expect("ERROR: Couldn't get hour");
+        let minute = parser.get_next_number().expect("ERROR: Couldn't get minutes");
+        let second = parser.get_next_number().expect("ERROR: Couldn't get seconds");
+
+        println!("year: {year}");
+        println!("month: {month}");
+        println!("days: {day}");
+        println!("hour: {hour}");
+        println!("minute: {minute}");
+        println!("second: {second}");
         todo!()
     }
 }
@@ -101,6 +171,16 @@ mod mydatetimetests {
     #[test]
     fn str_to_datetime() {
         let input = "1970-01-01T00:00:00";
+        println!("TestCase: {input}");
+        let result = MyDateTime::from(input);
+
+        assert_eq!(result.to_string(), input);
+    }
+
+    #[test]
+    fn str_to_datetime_2() {
+        let input = "2023-04-15T13:29:30";
+        println!("TestCase: {input}");
         let result = MyDateTime::from(input);
 
         assert_eq!(result.to_string(), input);
@@ -109,6 +189,7 @@ mod mydatetimetests {
     #[test]
     fn string_to_datetime() {
         let input = String::from("1970-01-01T00:00:00");
+        println!("TestCase: {input}");
         let result = MyDateTime::from(input.clone());
 
         assert_eq!(result.to_string(), input);
