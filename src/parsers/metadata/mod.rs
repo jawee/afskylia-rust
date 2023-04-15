@@ -93,7 +93,14 @@ struct DateTimeParser {
 }
 
 impl DateTimeParser {
-    fn new(input: &str) -> Result<DateTimeParser, String> {
+    fn new_from_string(input: String) -> Result<DateTimeParser, String> {
+        if input.is_empty() {
+            return Err("Input is required".to_string());
+        }
+
+        return Ok(Self::new_lexer_from_input(&input));
+    }
+    fn new_from_str(input: &str) -> Result<DateTimeParser, String> {
         if input.is_empty() {
             return Err("Input is required".to_string());
         }
@@ -140,13 +147,7 @@ impl DateTimeParser {
 
 impl From<String> for MyDateTime {
     fn from(value: String) -> Self {
-        todo!()
-    }
-}
-
-impl From<&str> for MyDateTime {
-    fn from(value: &str) -> Self {
-        let mut parser = DateTimeParser::new(value).expect("ERROR: Couldn't generate a new datetimeparser");
+        let mut parser = DateTimeParser::new_from_string(value).expect("ERROR: Couldn't generate a new datetimeparser");
         let year = parser.get_next_number().expect("ERROR: Couldn't get year");
         let month = parser.get_next_number().expect("ERROR: Couldn't get month");
         let day = parser.get_next_number().expect("ERROR: Couldn't get day");
@@ -154,13 +155,37 @@ impl From<&str> for MyDateTime {
         let minute = parser.get_next_number().expect("ERROR: Couldn't get minutes");
         let second = parser.get_next_number().expect("ERROR: Couldn't get seconds");
 
-        println!("year: {year}");
-        println!("month: {month}");
-        println!("days: {day}");
-        println!("hour: {hour}");
-        println!("minute: {minute}");
-        println!("second: {second}");
-        todo!()
+        return MyDateTime {
+            timestamp: 0,
+            year,
+            month,
+            day,
+            hour,
+            minute,
+            second,
+        };
+    }
+}
+
+impl From<&str> for MyDateTime {
+    fn from(value: &str) -> Self {
+        let mut parser = DateTimeParser::new_from_str(value).expect("ERROR: Couldn't generate a new datetimeparser");
+        let year = parser.get_next_number().expect("ERROR: Couldn't get year");
+        let month = parser.get_next_number().expect("ERROR: Couldn't get month");
+        let day = parser.get_next_number().expect("ERROR: Couldn't get day");
+        let hour = parser.get_next_number().expect("ERROR: Couldn't get hour");
+        let minute = parser.get_next_number().expect("ERROR: Couldn't get minutes");
+        let second = parser.get_next_number().expect("ERROR: Couldn't get seconds");
+
+        return MyDateTime {
+            timestamp: 0,
+            year,
+            month,
+            day,
+            hour,
+            minute,
+            second,
+        };
     }
 }
 
@@ -175,6 +200,7 @@ mod mydatetimetests {
         let result = MyDateTime::from(input);
 
         assert_eq!(result.to_string(), input);
+        assert_eq!(result.timestamp, 0);
     }
 
     #[test]
@@ -184,6 +210,7 @@ mod mydatetimetests {
         let result = MyDateTime::from(input);
 
         assert_eq!(result.to_string(), input);
+        assert_eq!(result.timestamp, 1681565010);
     }
 
     #[test]
@@ -193,6 +220,7 @@ mod mydatetimetests {
         let result = MyDateTime::from(input.clone());
 
         assert_eq!(result.to_string(), input);
+        assert_eq!(result.timestamp, 0);
     }
 
     #[test]
