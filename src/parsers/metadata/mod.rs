@@ -34,6 +34,7 @@ pub struct Lexer {
     prev: Option<char>,
 }
 
+
 impl Lexer {
     pub fn new(input: &str) -> Result<Lexer, String> {
         if input.is_empty() {
@@ -56,11 +57,20 @@ impl Lexer {
     }
 }
 
+impl From<&mut Lexer> for Metadata {
+    fn from(value: &mut Lexer) -> Self {
+
+        todo!();
+    }
+}
+
 #[cfg(test)]
 mod metadata_tests {
     use std::time::SystemTime;
 
     use crate::parsers::metadata::{Metadata, afdatetime::AfDateTime};
+
+    use super::Lexer;
 
     #[test]
     fn metadata_default() {
@@ -72,16 +82,19 @@ mod metadata_tests {
         assert_eq!(metadata.date, datetime);
     }
 
-    // #[test]
-    // fn metadata_new_from_lexer() {
-    //     let input = "+++\n\
-    //                  date: 2023-04-08T10:17:00\n\
-    //                  published: true\n\
-    //                  +++\n";
-    //
-    //     let lexer = Lexer::new(&input).expect("ERROR: Couldn't create lexer from input");
-    //     let metadata = Metadata::new(lexer);
-    // }
+    #[test]
+    fn metadata_new_from_lexer() {
+        let input = "+++\n\
+                     date: 2023-04-08T10:17:00\n\
+                     published: true\n\
+                     +++\n";
+
+        let mut lexer = Lexer::new(&input).expect("ERROR: Couldn't create lexer from input");
+        let metadata = Metadata::from(&mut lexer);
+
+        assert_eq!(metadata.published, true);
+        assert_eq!(metadata.date, AfDateTime::from("2023-04-08T10:17:00"));
+    }
 }
 #[cfg(test)]
 mod lexer_tests {
