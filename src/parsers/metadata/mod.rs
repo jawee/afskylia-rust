@@ -209,7 +209,6 @@ fn get_timestamp(year: usize, month: usize, day: usize, hour: usize, minute: usi
     let mut month_days = 0;
     let mut leap_year = false;
     if year % 4 == 0 && (year % 100 != 0 || year % 400 == 0) {
-        println!("year {year} is leap year");
         leap_year = true;
     }
     if month != 1 {
@@ -263,7 +262,7 @@ mod mydatetimetests {
     #[test]
     fn string_to_datetime() {
         let input = String::from("1970-01-01T00:00:00");
-        println!("TestCase: {input}");
+        println!("Testcase: {input}");
         let result = MyDateTime::from(input.clone());
 
         assert_eq!(result.to_string(), input);
