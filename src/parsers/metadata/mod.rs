@@ -50,7 +50,7 @@ impl MyDateTime {
         let mut days_this_year = (days_since_1970 - (leap_year_count * 1461)) % 365;
 
         let mut leap_year = false;
-        if year % 4 == 0 && year % 100 == 0 && year % 400 == 0 {
+        if year % 4 == 0 && (year % 100 != 0 || year % 400 == 0) {
             leap_year = true;
             days_this_year += 1;
         }
@@ -155,8 +155,10 @@ impl From<String> for MyDateTime {
         let minute = parser.get_next_number().expect("ERROR: Couldn't get minutes");
         let second = parser.get_next_number().expect("ERROR: Couldn't get seconds");
 
+        let timestamp = get_timestamp(year, month, day, hour, minute, second);
+
         return MyDateTime {
-            timestamp: 0,
+            timestamp,
             year,
             month,
             day,
@@ -177,8 +179,10 @@ impl From<&str> for MyDateTime {
         let minute = parser.get_next_number().expect("ERROR: Couldn't get minutes");
         let second = parser.get_next_number().expect("ERROR: Couldn't get seconds");
 
+        let timestamp = get_timestamp(year, month, day, hour, minute, second);
+
         return MyDateTime {
-            timestamp: 0,
+            timestamp,
             year,
             month,
             day,
@@ -189,28 +193,71 @@ impl From<&str> for MyDateTime {
     }
 }
 
+fn get_timestamp(year: usize, month: usize, day: usize, hour: usize, minute: usize, second: usize) -> usize {
+    let mut timestamp = 0;
+    timestamp += (year-1970)*86400*365;
+    let mut leap_days_to_add = 0;
+    for i in 1970..year {
+        if i % 4 == 0 && (i % 100 != 0 || i % 400 == 0) {
+            leap_days_to_add += 1;
+        }
+    }
+
+    timestamp += leap_days_to_add*86400;
+
+    let days_in_month: [usize; 12] = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    let mut month_days = 0;
+    let mut leap_year = false;
+    if year % 4 == 0 && (year % 100 != 0 || year % 400 == 0) {
+        println!("year {year} is leap year");
+        leap_year = true;
+    }
+    if month != 1 {
+        for i in 0..month-1 {
+            if i == 1 && leap_year {
+                month_days += 1;
+            }
+            month_days += days_in_month[i];
+        }
+    }
+
+    timestamp += month_days*86400;
+
+    timestamp += (day-1)*86400;
+    timestamp += hour*60*60;
+    timestamp += minute*60;
+    timestamp += second;
+    return timestamp;
+}
+
 #[cfg(test)]
 mod mydatetimetests {
     use super::MyDateTime;
 
     #[test]
-    fn str_to_datetime() {
-        let input = "1970-01-01T00:00:00";
-        println!("TestCase: {input}");
-        let result = MyDateTime::from(input);
+    fn str_to_datetime_many() {
+        let expected = [
+            0, 1, 10368000, 
+            31455034, 41904000, 68169600, 
+            68256000, 99792000,
+            1681448931, 1681105217, 1313905026
+        ];
 
-        assert_eq!(result.to_string(), input);
-        assert_eq!(result.timestamp, 0);
-    }
+        let inputs = [
+            "1970-01-01T00:00:00", "1970-01-01T00:00:01", "1970-04-31T00:00:00",
+            "1970-12-31T01:30:34", "1971-04-31T00:00:00", "1972-02-29T00:00:00",
+            "1972-03-01T00:00:00", "1973-03-01T00:00:00",
+            "2023-04-14T05:08:51", "2023-04-10T05:40:17", "2011-08-21T05:37:06"
+        ];
 
-    #[test]
-    fn str_to_datetime_2() {
-        let input = "2023-04-15T13:29:30";
-        println!("TestCase: {input}");
-        let result = MyDateTime::from(input);
-
-        assert_eq!(result.to_string(), input);
-        assert_eq!(result.timestamp, 1681565010);
+        for (i, _) in inputs.iter().enumerate() {
+            println!("------------------------");
+            println!("Testcase: {}", inputs[i]);
+            let result = MyDateTime::from(inputs[i]);
+            assert_eq!(result.to_string(), inputs[i]);
+            assert_eq!(result.timestamp, expected[i]);
+            println!("Pass");
+        }
     }
 
     #[test]
