@@ -25,8 +25,22 @@ impl Display for Metadata {
     }
 }
 
+#[derive(Debug, PartialEq)]
+enum TokenType {
+    Plus,
+    Letter,
+    Number,
+    NewLine,
+    EOF
+}
+
+struct Token {
+    token_type: TokenType,
+    literal: Option<char>
+}
+
 #[derive(Debug)]
-pub struct Lexer {
+struct Lexer {
     input: String,
     position: usize,
     read_position: usize,
@@ -55,10 +69,31 @@ impl Lexer {
 
         return lexer;
     }
+
+    fn read_char(&mut self) {
+        self.prev = self.ch;
+        self.ch = self.input.chars().nth(self.read_position);
+
+        self.position = self.read_position;
+        self.read_position += 1;
+    }
+
+    fn next_token(&mut self) -> Token {
+        self.read_char();
+
+        let tok = match self.ch {
+            None => TokenType::EOF,
+            Some('+') => TokenType::Plus,
+            Some('\n') => TokenType::NewLine,
+            Some(_) => TokenType::Letter
+        };
+
+        return Token { token_type: tok, literal: self.ch };
+    }
 }
 
 impl From<&mut Lexer> for Metadata {
-    fn from(value: &mut Lexer) -> Self {
+    fn from(lexer: &mut Lexer) -> Self {
 
         todo!();
     }
@@ -100,7 +135,8 @@ mod metadata_tests {
 mod lexer_tests {
     use claim::{assert_ok, assert_err};
 
-    use crate::parsers::metadata::Lexer;
+    use crate::parsers::metadata::{Lexer, TokenType};
+
 
     #[test]
     fn new_lexer_ok() {
@@ -110,6 +146,20 @@ mod lexer_tests {
                      +++\n";
 
         assert_ok!(Lexer::new(&input));
+    }
+
+    #[test]
+    fn lexer_next_token() {
+        let inputs = vec!["+", "\n", "d", "2"];
+
+        let expected = vec![TokenType::Plus, TokenType::NewLine, TokenType::Letter, TokenType::Letter];
+
+        for (i, input) in inputs.iter().enumerate() {
+            let mut lexer = Lexer::new(input).expect("Couldn't create lexer");
+            let tok = lexer.next_token();
+
+            assert_eq!(tok.token_type, expected[i]);
+        }
     }
 
     #[test]
