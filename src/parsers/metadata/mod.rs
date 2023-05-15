@@ -29,7 +29,6 @@ impl Display for Metadata {
 enum TokenType {
     Plus,
     Letter,
-    Number,
     NewLine,
     EOF
 }
@@ -149,10 +148,20 @@ mod lexer_tests {
     }
 
     #[test]
+    fn lexer_next_token_eof() {
+        let input = " ";
+
+        let mut lexer = Lexer::new(input).expect("Couldn't create lexer");
+        lexer.next_token();
+        let tok = lexer.next_token();
+        assert_eq!(tok.token_type, TokenType::EOF); 
+    }
+    #[test]
     fn lexer_next_token() {
         let inputs = vec!["+", "\n", "d", "2"];
 
-        let expected = vec![TokenType::Plus, TokenType::NewLine, TokenType::Letter, TokenType::Letter];
+        let expected = vec![TokenType::Plus, TokenType::NewLine,
+                           TokenType::Letter, TokenType::Letter];
 
         for (i, input) in inputs.iter().enumerate() {
             let mut lexer = Lexer::new(input).expect("Couldn't create lexer");
