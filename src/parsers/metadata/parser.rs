@@ -1,4 +1,7 @@
-use super::{Metadata, Lexer, Token};
+use super::Metadata;
+
+use crate::parsers::metadata::lexer::Token;
+use crate::parsers::metadata::lexer::Lexer;
 
 struct Parser {
     lexer: Lexer,
@@ -21,7 +24,7 @@ impl Parser {
     }
 
     fn parse(&mut self) -> Result<Metadata, String> {
-        return Err("".to_string());
+        todo!("Implement parser");
     }
 }
 
