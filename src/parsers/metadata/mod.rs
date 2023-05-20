@@ -1,4 +1,5 @@
 mod afdatetime;
+mod parser;
 
 use std::{fmt::Display, time::SystemTime};
 
@@ -77,6 +78,18 @@ impl Lexer {
         self.read_position += 1;
     }
 
+    fn peek_token(&mut self) -> Token {
+        let ch = self.input.chars().nth(self.read_position);
+        let tok = match ch {
+            None => TokenType::EOF,
+            Some('+') => TokenType::Plus,
+            Some('\n') => TokenType::NewLine,
+            Some(_) => TokenType::Letter
+        };
+
+        return Token { token_type: tok, literal: ch };
+    }
+
     fn next_token(&mut self) -> Token {
         self.read_char();
 
@@ -91,10 +104,9 @@ impl Lexer {
     }
 }
 
-impl From<&mut Lexer> for Metadata {
-    fn from(lexer: &mut Lexer) -> Self {
-
-        todo!();
+impl From<&str> for Metadata {
+    fn from(value: &str) -> Self {
+        todo!()
     }
 }
 
@@ -103,8 +115,6 @@ mod metadata_tests {
     use std::time::SystemTime;
 
     use crate::parsers::metadata::{Metadata, afdatetime::AfDateTime};
-
-    use super::Lexer;
 
     #[test]
     fn metadata_default() {
@@ -117,14 +127,13 @@ mod metadata_tests {
     }
 
     #[test]
-    fn metadata_new_from_lexer() {
+    fn metadata_new_from_str() {
         let input = "+++\n\
                      date: 2023-04-08T10:17:00\n\
                      published: true\n\
                      +++\n";
 
-        let mut lexer = Lexer::new(&input).expect("ERROR: Couldn't create lexer from input");
-        let metadata = Metadata::from(&mut lexer);
+        let metadata = Metadata::from(input);
 
         assert_eq!(metadata.published, true);
         assert_eq!(metadata.date, AfDateTime::from("2023-04-08T10:17:00"));
