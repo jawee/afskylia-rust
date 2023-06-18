@@ -76,6 +76,10 @@ impl Lexer {
                     token_type = TokenType::Value;
                 }
 
+                if self.ch.unwrap().is_whitespace() {
+                    self.read_char();
+                }
+
                 while self.ch.is_some() && self.ch != end_char {
                     literal.push(self.ch.unwrap());
                     self.read_char();

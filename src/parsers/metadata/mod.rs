@@ -12,6 +12,15 @@ pub struct Metadata {
     published: bool,
 }
 
+impl Metadata {
+    fn new(date: AfDateTime, published: bool) -> Self {
+        return Metadata {
+            date,
+            published,
+        };
+    }
+}
+
 impl Default for Metadata {
     fn default() -> Self {
         return Metadata {
