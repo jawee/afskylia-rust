@@ -39,7 +39,10 @@ impl Display for Metadata {
 
 impl From<&str> for Metadata {
     fn from(value: &str) -> Self {
-        todo!()
+        let mut parser = parser::Parser::from(value);
+        let metadata = parser.parse().expect("ERROR: Couldn't parse metadata");
+
+        return metadata;
     }
 }
 

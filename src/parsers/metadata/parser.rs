@@ -5,7 +5,7 @@ use crate::parsers::metadata::lexer::Token;
 use crate::parsers::metadata::lexer::Lexer;
 use crate::parsers::metadata::lexer::TokenType;
 
-struct Parser {
+pub struct Parser {
     lexer: Lexer,
     cur_token: Token,
 }
@@ -26,7 +26,7 @@ impl Parser {
         self.cur_token = self.lexer.next_token();
     }
 
-    fn parse(&mut self) -> Result<Metadata, String> {
+    pub fn parse(&mut self) -> Result<Metadata, String> {
         let mut date: Option<AfDateTime> = None;
         let mut published: Option<bool> = None;
         while self.cur_token.token_type != TokenType::EOF {
@@ -70,6 +70,12 @@ impl Parser {
             self.read_next();
         }
         return Ok(Metadata::new(date.unwrap(), published.unwrap()));
+    }
+}
+
+impl From<&str> for Parser {
+    fn from(value: &str) -> Self {
+        return Self::new(value);
     }
 }
 
