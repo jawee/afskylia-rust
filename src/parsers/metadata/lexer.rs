@@ -1,15 +1,17 @@
 
 #[derive(Debug, PartialEq)]
 pub enum TokenType {
-    Plus,
-    Letter,
-    NewLine,
-    EOF
+    Delim,
+    Key,
+    Value,
+    EOF,
+    INVALID,
 }
 
+#[derive(Debug)]
 pub struct Token {
-    token_type: TokenType,
-    literal: Option<char>
+    pub token_type: TokenType,
+    pub literal: Option<String>
 }
 
 #[derive(Debug)]
@@ -51,29 +53,39 @@ impl Lexer {
         self.read_position += 1;
     }
 
-    pub fn peek_token(&mut self) -> Token {
-        let ch = self.input.chars().nth(self.read_position);
-        let tok = match ch {
-            None => TokenType::EOF,
-            Some('+') => TokenType::Plus,
-            Some('\n') => TokenType::NewLine,
-            Some(_) => TokenType::Letter
-        };
-
-        return Token { token_type: tok, literal: ch };
-    }
-
     pub fn next_token(&mut self) -> Token {
         self.read_char();
 
-        let tok = match self.ch {
-            None => TokenType::EOF,
-            Some('+') => TokenType::Plus,
-            Some('\n') => TokenType::NewLine,
-            Some(_) => TokenType::Letter
+        let token = match self.ch {
+            None => Token { token_type: TokenType::EOF, literal: None },
+            Some('+') => {
+                while self.ch.unwrap() == '+' {
+                    self.read_char();
+                }
+                if self.ch.unwrap() == '\n' || self.ch.is_none() {
+                }
+                Token { token_type: TokenType::Delim, literal: None }
+            }
+            Some(_) => {
+                let mut literal = String::new();
+                let mut end_char = Some(':');
+                let mut token_type = TokenType::Key;
+
+                if self.prev.is_some() && self.prev == Some(':') {
+                    end_char = Some('\n');
+                    token_type = TokenType::Value;
+                }
+
+                while self.ch.is_some() && self.ch != end_char {
+                    literal.push(self.ch.unwrap());
+                    self.read_char();
+                }
+
+                Token { token_type, literal: Some(literal) }
+            }
         };
 
-        return Token { token_type: tok, literal: self.ch };
+        return token;
     }
 }
 
@@ -102,17 +114,20 @@ mod lexer_tests {
         let tok = lexer.next_token();
         assert_eq!(tok.token_type, TokenType::EOF); 
     }
+
     #[test]
-    fn lexer_next_token() {
-        let inputs = vec!["+", "\n", "d", "2"];
+    fn lexer_test_input() {
+        let input = "+++\n\
+                     date: 2023-04-08T10:17:00\n\
+                     published: true\n\
+                     +++\n";
+        let mut lexer = Lexer::new(input).expect("Couldn't create lexer");  
 
-        let expected = vec![TokenType::Plus, TokenType::NewLine,
-                           TokenType::Letter, TokenType::Letter];
+        let expected = vec![TokenType::Delim, TokenType::Key, TokenType::Value,
+        TokenType::Key, TokenType::Value, TokenType::Delim, TokenType::EOF];
 
-        for (i, input) in inputs.iter().enumerate() {
-            let mut lexer = Lexer::new(input).expect("Couldn't create lexer");
+        for (i, _) in expected.iter().enumerate() {
             let tok = lexer.next_token();
-
             assert_eq!(tok.token_type, expected[i]);
         }
     }
