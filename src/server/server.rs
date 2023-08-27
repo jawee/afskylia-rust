@@ -23,7 +23,7 @@ fn handle_connection(mut stream: impl Write, request_line: String, content_map: 
         path = "/index.html".to_string();
     }
 
-    let (status_line, content) = match get_content_for_path(path.clone(), &content_map.clone()) {
+    let (status_line, content) = match get_content_for_path(&path, &content_map) {
         None => {
             ("HTTP/1.1 404 NOT FOUND", get_not_found_content(&content_map))
         },
@@ -66,8 +66,8 @@ fn get_not_found_content(content_map: &HashMap<String, Vec<u8>>) -> Vec<u8> {
     return content;
 }
 
-fn get_content_for_path(path: String, content_map: &HashMap<String, Vec<u8>>) -> Option<Vec<u8>> {
-    let maybe_content = content_map.get(&path).cloned();
+fn get_content_for_path(path: &str, content_map: &HashMap<String, Vec<u8>>) -> Option<Vec<u8>> {
+    let maybe_content = content_map.get(path).cloned();
     return maybe_content;
 }
 
@@ -190,7 +190,7 @@ mod tests {
         let path = "/".to_string();
         let mut content_map: HashMap<String, Vec<u8>> = HashMap::new();
         content_map.insert("/".to_string(), "content".as_bytes().to_vec());
-        let content = get_content_for_path(path, &content_map);
+        let content = get_content_for_path(&path, &content_map);
 
         assert_eq!(content, Some("content".as_bytes().to_vec()));
     }
@@ -200,7 +200,7 @@ mod tests {
         let path = "/asdf".to_string();
         let mut content_map: HashMap<String, Vec<u8>> = HashMap::new();
         content_map.insert("/".to_string(), "content".as_bytes().to_vec());
-        let content = get_content_for_path(path, &content_map);
+        let content = get_content_for_path(&path, &content_map);
 
         assert_eq!(content, None);
     }
