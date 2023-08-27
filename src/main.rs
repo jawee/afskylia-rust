@@ -18,7 +18,7 @@ fn main() {
         "help" => println!("{}", HELP),
         "new" => new(&args),
         "version" => println!("0.0.1"),
-        x @ _ => println!("Unknown command \"{}\" for \"afskylia\".\nRun 'afskylia help' for usage.", x)
+        unknown => println!("Unknown command \"{}\" for \"afskylia\".\nRun 'afskylia help' for usage.", unknown)
     }
 }
 
