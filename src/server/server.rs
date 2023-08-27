@@ -35,16 +35,13 @@ fn handle_connection(mut stream: impl Write, request_line: String, content_map: 
 
     let content_length = content.len();
 
-    let mut content_type = "text/html";
-    if path.ends_with(".png") {
-        content_type = "image/png";
-    } else if path.ends_with(".css") {
-        content_type = "text/css";
-    } else if path.ends_with(".jpg") || path.ends_with(".jpeg") {
-        content_type = "image/jpeg";
-    } else if path.ends_with(".js") {
-        content_type = "text/javascript";
-    }
+    let content_type = match path {
+        s if s.ends_with(".png") => "image/png",
+        s if s.ends_with(".css") => "text/css",
+        s if s.ends_with(".jpg") || s.ends_with(".jpeg") => "image/jpeg",
+        s if s.ends_with(".js") => "text/javascript",
+        _ => "text/html",
+    };
 
     let response = 
         format!("{status_line}\r\ncontent-length: {content_length}\r\ncontent-type: {content_type}\r\n\r\n");
