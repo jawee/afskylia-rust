@@ -7,6 +7,7 @@ fn main() {
 
     if args.len() == 1 {
         println!("No argument provided");
+        println!("{}", HELP);
         return;
     }
 
@@ -17,7 +18,7 @@ fn main() {
         "help" => println!("{}", HELP),
         "new" => new(&args),
         "version" => println!("0.0.1"),
-        _ => println!("unknown command")
+        x @ _ => println!("Unknown command \"{}\" for \"afskylia\".\nRun 'afskylia help' for usage.", x)
     }
 }
 
