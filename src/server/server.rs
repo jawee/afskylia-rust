@@ -35,13 +35,7 @@ fn handle_connection(mut stream: impl Write, request_line: String, content_map: 
 
     let content_length = content.len();
 
-    let content_type = match path {
-        s if s.ends_with(".png") => "image/png",
-        s if s.ends_with(".css") => "text/css",
-        s if s.ends_with(".jpg") || s.ends_with(".jpeg") => "image/jpeg",
-        s if s.ends_with(".js") => "text/javascript",
-        _ => "text/html",
-    };
+    let content_type = get_content_type_for_path(&path);
 
     let response = 
         format!("{status_line}\r\ncontent-length: {content_length}\r\ncontent-type: {content_type}\r\n\r\n");
@@ -50,6 +44,18 @@ fn handle_connection(mut stream: impl Write, request_line: String, content_map: 
     respvec.extend_from_slice(&mut Vec::from(content));
 
     stream.write_all(&respvec).unwrap();
+}
+
+fn get_content_type_for_path(path: &str) -> &str {
+    let content_type = match path {
+        s if s.ends_with(".png") => "image/png",
+        s if s.ends_with(".css") => "text/css",
+        s if s.ends_with(".jpg") || s.ends_with(".jpeg") => "image/jpeg",
+        s if s.ends_with(".js") => "text/javascript",
+        _ => "text/html",
+    };
+
+    return content_type;
 }
 
 fn get_not_found_content(content_map: &HashMap<String, Vec<u8>>) -> Vec<u8> {
