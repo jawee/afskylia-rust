@@ -67,8 +67,8 @@ fn get_not_found_content(content_map: &HashMap<String, Vec<u8>>) -> Vec<u8> {
 }
 
 fn get_content_for_path(path: &str, content_map: &HashMap<String, Vec<u8>>) -> Option<Vec<u8>> {
-    let maybe_content = content_map.get(path).cloned();
-    return maybe_content;
+    let maybe_content = content_map.get(path);
+    return maybe_content.cloned();
 }
 
 fn get_request_path(request_line: &str) -> String {
