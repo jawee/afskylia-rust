@@ -1,8 +1,10 @@
 use std::{collections::HashMap, env::current_dir, path::PathBuf, fs::{self, File}, io::{BufReader, Read}};
 
 use crate::server;
+use crate::commands::build;
 
-pub fn run(_args: &Vec<String>) {
+pub fn run(args: &Vec<String>) {
+    build(args);
     let curr_dir_path = current_dir().unwrap();
 
     let public_folder_path = curr_dir_path.join(PUBLIC_DIR_PATH);
