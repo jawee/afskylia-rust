@@ -1,19 +1,18 @@
 use std::{collections::HashMap, net::{TcpListener, TcpStream}, io::{BufReader, BufRead, Write}};
 
 pub fn start(content_map: &HashMap<String, Vec<u8>>) {
-    let listener = TcpListener::bind("127.0.0.1:1313").unwrap();
+    let listener = TcpListener::bind("127.0.0.1:1313").expect("Couldn't bind :1313");
 
     println!("Listening on port 1313");
     for stream in listener.incoming() {
-        let stream = stream.unwrap();
+        let stream = stream.expect("Couldn't get listener stream");
 
         handle_stream(stream, &content_map);
     }
 }
 
 fn handle_stream(mut stream: TcpStream, content_map: &HashMap<String, Vec<u8>>) {
-    let buf_reader = BufReader::new(&mut stream);
-    let request_line = buf_reader.lines().next().unwrap().unwrap();
+    let request_line = BufReader::new(&mut stream).lines().next().expect("Couldn't get next line").expect("Couldn't unwrap result");
     handle_connection(stream, request_line, &content_map);
 }
 
@@ -64,7 +63,7 @@ fn get_not_found_content(content_map: &HashMap<String, Vec<u8>>) -> Vec<u8> {
         None => NOT_FOUND.to_string().as_bytes().to_vec()
     };
     
-    return content.to_vec();
+    return content;
 }
 
 fn get_content_for_path(path: String, content_map: &HashMap<String, Vec<u8>>) -> Option<Vec<u8>> {
