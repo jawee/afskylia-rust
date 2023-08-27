@@ -3,6 +3,7 @@ use std::{collections::HashMap, net::{TcpListener, TcpStream}, io::{BufReader, B
 pub fn start(content_map: &HashMap<String, Vec<u8>>) {
     let listener = TcpListener::bind("127.0.0.1:1313").unwrap();
 
+    println!("Listening on port 1313");
     for stream in listener.incoming() {
         let stream = stream.unwrap();
 
